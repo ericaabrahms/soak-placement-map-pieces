@@ -84,45 +84,6 @@ def create_circle_with_number(number, diam):
 
 #     return
 
-
-def create_horizontal_rectangle(drawer, text, fill, x=0, y=0, width=0, height=0):
-    drawer.rectangle((x, y, width, height), outline=COLORS["BLACK"], width=1, fill=fill)
-    drawer.text((x+5, y+5), text=text, fill=COLORS["BLACK"], font=SMALL_FONT)
-
-def create_sz_rectangle(drawer, sz):
-    create_horizontal_rectangle(drawer, text=sz, width=100, fill=COLORS[sz], height=30)
-
-def vertical_rectangle(text, width, height, color):
-    # width and height are explicitly reversed b/c we're going to rotate the box to be vertical
-    i = Image.new("RGB", (height, width), color)
-    drawer = ImageDraw.Draw(i)
-    # TODO: Font
-    drawer.text(text)
-    # expand means "make the image bigger if necessary to accomodate"
-    rotated = i.rotate(-90, expand=1)
-
-    # You can use img.paste(vertical_rectangle(...)) to put this on the image in the right spot
-    return rotated
-
-
-# Draw "works!" at 10,10  and fill it with COLORS["BLACK"] using our pre-defined font.
-# draw.text((10, 10), text="Works!", fill=(0, 0, 0), font=FNT)
-
-# # Draw a 40x40 rectangle starting at 30,20
-# draw.rectangle((30, 30, 70, 70), fill="#FF0000")
-
-# # rotated text happens with an in-memory "image" via https://stackoverflow.com/a/245892
-# rot = Image.new('L', (50, 50))
-
-# # https://pillow.readthedocs.io/en/stable/reference/ImageDraw.html#PIL.ImageDraw.ImageDraw.multiline_text
-# d = ImageDraw.Draw(rot)
-# d.multiline_text((0,0), "This is the\nrotated\ntext", fill=255)
-
-# # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.rotate
-# w = rot.rotate(-90, expand=1)
-
-# # Paste temporary image "w"'s top-left corner at 120,120.
-# img.paste(w, box=(120, 120))
 def bool_fetcher(row):
     def bool_is_set(key):
         return row[key].strip() != '' or row[key].lower() == 'no'
