@@ -56,7 +56,7 @@ def determine_rectangle_placement():
 
 def create_circle_with_number(number, diam):
     # TODO FIGURE OUT TRANSPARENT BG
-    i = Image.new("RGB", (diam + BORDER_WIDTH * 2, diam + BORDER_WIDTH * 2), COLORS["WHITE"])
+    i = Image.new("RGB", (diam, diam), COLORS["WHITE"])
     drawer = ImageDraw.Draw(i)
 
     tl = round((CIRCLE_HEIGHT - SMALL_FONT_SIZE) / 2)
@@ -204,12 +204,12 @@ def gen_image_for_camp(camp: CampInfo):
     # Camp Name
     add_obj_to_image(
         img,
-        create_rectangle(draw, camp.name, frontage_in_px - HEADER_HEIGHT*2, HEADER_HEIGHT, bg=COLORS["WHITE"]),
-        (HEADER_HEIGHT, HEADER_HEIGHT),
+        create_rectangle(draw, camp.name, frontage_in_px - SIDE_HEIGHT *2, HEADER_HEIGHT, bg=COLORS["WHITE"]),
+        (SIDE_HEIGHT, HEADER_HEIGHT),
     )
 
     # Left Bar
-    left = create_rectangle(draw, "LEFT BAR", depth_in_px - (HEADER_HEIGHT*2), HEADER_HEIGHT)
+    left = create_rectangle(draw, "LEFT BAR", depth_in_px - (HEADER_HEIGHT*2), SIDE_HEIGHT)
     add_obj_to_image(
         img,
         left.rotate(-90, expand=1),
@@ -217,11 +217,11 @@ def gen_image_for_camp(camp: CampInfo):
     )
 
     # Right Bar
-    right = create_rectangle(draw, "RIGHT BAR", depth_in_px - (HEADER_HEIGHT*2), HEADER_HEIGHT)
+    right = create_rectangle(draw, "RIGHT BAR", depth_in_px - (HEADER_HEIGHT*2), SIDE_HEIGHT)
     add_obj_to_image(
         img,
         right.rotate(-90, expand=1),
-        (frontage_in_px-HEADER_HEIGHT, HEADER_HEIGHT) # start at top left of right column
+        (frontage_in_px-SIDE_HEIGHT, HEADER_HEIGHT) # start at top left of right column
     )
 
     # Footer
@@ -236,20 +236,20 @@ def gen_image_for_camp(camp: CampInfo):
     add_obj_to_image(
         img,
         create_rectangle(draw, str(camp.width), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=COLORS["BLACK"]),
-        (HEADER_HEIGHT, img.height - (2 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+        (SIDE_HEIGHT, img.height - (2 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
     # (DEPTH)
     add_obj_to_image(
         img,
         create_rectangle(draw, str(camp.height), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=COLORS["BLACK"]).rotate(-90, expand=1),
-        (HEADER_HEIGHT, img.height - (3 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+        (SIDE_HEIGHT, img.height - (3 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
     # RV Circle
     add_obj_to_image(
         img,
         create_circle_with_number(3, CIRCLE_HEIGHT),
-        (frontage_in_px - (HEADER_HEIGHT + CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+        (frontage_in_px - (SIDE_HEIGHT + CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
     return img
