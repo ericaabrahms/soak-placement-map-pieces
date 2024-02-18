@@ -16,6 +16,9 @@ COLORS = {
     "SZ 3": "#00FFFF",
 }
 
+black = '#000000'
+white = '#FFFFFF'
+pink = '#FF00FF'
 
 # default vars for sample line
 frontage = 60
@@ -24,18 +27,18 @@ depth = 120
 def get_pixels_from_feet(distance_in_feet):
   return distance_in_feet * PIXELS_PER_FOOT
 
-def create_rectangle(drawer, text, width, height, color="#000000", bg="#FF00FF", gradient=None):
-    i = Image.new("RGB", (height, width), bg)
+def create_rectangle(drawer, text, width, height, color=black, bg="#FF00FF", gradient=None):
+    i = Image.new("RGB", (width, height), bg)
     drawer = ImageDraw.Draw(i)
     # TODO: Font
-    drawer.text((5, 5), text)
+    # TODO: add a border
+    drawer.text((5, 5), text, fill=color)
 
     return i
 
 def rotate(thing_to_rotate, rotation = 0):
     # expand means "make the image bigger if necessary to accomodate"
-    rotated = thing_to_rotate.rotate(rotation, expand=1)
-    return rotated
+    return thing_to_rotate.rotate(rotation, expand=1)
 
 def add_rectangle_to_image(image, rect, top_left):
     image.paste(rect, box=top_left)
@@ -61,8 +64,8 @@ def determine_rectangle_placement():
 
 
 def create_horizontal_rectangle(drawer, text, fill, x=0, y=0, width=0, height=0):
-    drawer.rectangle((x, y, width, height), outline="#000000", width=1, fill=fill)
-    drawer.text((x+5, y+5), text=text, fill="#000000", font=SMALL_FONT)
+    drawer.rectangle((x, y, width, height), outline=black, width=1, fill=fill)
+    drawer.text((x+5, y+5), text=text, fill=black, font=SMALL_FONT)
 
 def create_sz_rectangle(drawer, sz):
     create_horizontal_rectangle(drawer, text=sz, width=100, fill=COLORS[sz], height=30)
@@ -84,14 +87,56 @@ def gen_image():
     frontage_in_px = round(get_pixels_from_feet(frontage))
     depth_in_px = round(get_pixels_from_feet(depth))
 
-    img = Image.new("RGB", (frontage_in_px, depth_in_px), "#FFFFFF")
+    img = Image.new("RGB", (frontage_in_px, depth_in_px), white)
 
     draw = ImageDraw.Draw(img)
 
-    create_sz_rectangle(draw, "SZ 1")
+    # create_sz_rectangle(draw, "SZ 1")
+    HEADER_HEIGHT = 25
+    # Header
+    add_rectangle_to_image(
+        img,
+        create_rectangle(draw, "SZ 1", frontage_in_px, HEADER_HEIGHT),
+        (0,0) # start at top left.
+    )
 
-    test_rect = create_rectangle(draw, "TEST", frontage_in_px, 25, gradient='green')
-    add_rectangle_to_image(img, test_rect, determine_rectangle_placement())
+    # Left Bar
+    left = create_rectangle(draw, "LEFT BAR", depth_in_px - (HEADER_HEIGHT*2), HEADER_HEIGHT)
+    add_rectangle_to_image(
+        img,
+        left.rotate(-90, expand=1),
+        (0, HEADER_HEIGHT) # start at top left of left column
+    )
+
+    # Right Bar
+    right = create_rectangle(draw, "RIGHT BAR", depth_in_px - (HEADER_HEIGHT*2), HEADER_HEIGHT)
+    add_rectangle_to_image(
+        img,
+        right.rotate(-90, expand=1),
+        (frontage_in_px-HEADER_HEIGHT, HEADER_HEIGHT) # start at top left of right column
+    )
+
+    # Footer
+    add_rectangle_to_image(
+        img,
+        create_rectangle(draw, "FOOTER", frontage_in_px, HEADER_HEIGHT),
+        (0, img.height - HEADER_HEIGHT) # start at bottom left, offset by how tall the rectangle is.
+    )
+
+    # DIMS
+    # (FRONTAGE)
+    add_rectangle_to_image(
+        img,
+        create_rectangle(draw, str(frontage), HEADER_HEIGHT, HEADER_HEIGHT, bg=white, color=black),
+        (HEADER_HEIGHT, img.height - (2 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+    )
+    # (DEPTH)
+    add_rectangle_to_image(
+        img,
+        create_rectangle(draw, str(depth), HEADER_HEIGHT, HEADER_HEIGHT, bg=white, color=black).rotate(-90, expand=1),
+        (HEADER_HEIGHT, img.height - (3 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+    )
+
 
     return img
 
