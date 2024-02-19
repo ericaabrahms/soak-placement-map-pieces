@@ -1,3 +1,4 @@
+from pprint import pprint
 import csv
 from typing import List
 from enum import Enum
@@ -124,8 +125,6 @@ def read_csv():
             sound_zone = row['Sound Zone'] # e.g. "SZ 2"
             kids = row['Kids v Kids+'] # Kids, Kids+
             food = row['Food'] # Food, Food+
-            if 'plunder' in row[' '].lower():
-                import pdb; pdb.set_trace()
 
             camps.append(CampInfo(
                 width=int(row['Frontage']),
