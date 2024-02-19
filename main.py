@@ -216,17 +216,36 @@ def gen_image_for_camp(camp: CampInfo):
         (SIDE_HEIGHT, HEADER_HEIGHT),
     )
 
-    # Left Bar
-    # print("Heights: ", camp, camp.height, get_pixels_from_feet(camp.height), depth_in_px, depth_in_px - (HEADER_HEIGHT*2), SIDE_HEIGHT)
-    left = create_rectangle(draw, "LEFT BAR", depth_in_px - (HEADER_HEIGHT*2), SIDE_HEIGHT)
-    add_obj_to_image(
-        img,
-        left.rotate(-90, expand=1),
-        (0, HEADER_HEIGHT) # start at top left of left column
-    )
+    # Border Bars
+    border_bars = place_bars(generate_border_bars_for_camp(camp))
+    side_bar_width = depth_in_px - (HEADER_HEIGHT*2)
+
+    # LEFT
+    if len(border_bars[BorderBarPosition.LEFT]) > 0:
+        pass
+        bar_width = math.floor(side_bar_width/len(border_bars[BorderBarPosition.LEFT]))
+        b1 =  border_bars[BorderBarPosition.LEFT][0]
+    if len(border_bars[BorderBarPosition.LEFT]) == 2:
+        b2 =  border_bars[BorderBarPosition.LEFT][1]
+        if b1 != None:
+            top_left = create_rectangle(draw, b1.text, bar_width, SIDE_HEIGHT, bg=b1.background_color)
+            add_obj_to_image(
+                img,
+                top_left.rotate(-90, expand=1),
+                (0, HEADER_HEIGHT) # start at top left of left column
+            )
+        if b2 != None:
+            bottom_left = create_rectangle(draw, b2.text, bar_width, SIDE_HEIGHT, bg=b2.background_color)
+            add_obj_to_image(
+                img,
+                bottom_left.rotate(-90, expand=1),
+                (0, HEADER_HEIGHT + bar_width) # start at top left of left column
+            )
+
+
 
     # Right Bar
-    side_bar_width = depth_in_px - (HEADER_HEIGHT*2)
+    # side_bar_width = depth_in_px - (HEADER_HEIGHT*2)
     bar_width = math.floor(side_bar_width/2)
     top_right = create_rectangle(draw, "TOP RIGHT BAR", bar_width, SIDE_HEIGHT)
     add_obj_to_image(
