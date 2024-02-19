@@ -253,8 +253,6 @@ def gen_image_for_camp(camp: CampInfo):
                 if position == BorderBarPosition.RIGHT:
                     x_position = frontage_in_px - SIDE_HEIGHT
 
-            print(f"Going to draw a rectangle for {camp}'s {bar.text} attribute at {bar_width}x{height}")
-            print(f"that rectangle will be placed at {x_position}, {y_pos}")
             in_progress = create_rectangle(draw, bar.text, bar_width, height, bg=bar.background_color, color=bar.text_color)
             add_obj_to_image(
                 img,
@@ -277,6 +275,7 @@ def gen_image_for_camp(camp: CampInfo):
         (SIDE_HEIGHT, img.height - (3 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
+    # RV Circle
     if camp.rv_count > 0:
         # RV Circle
         add_obj_to_image(
@@ -286,7 +285,6 @@ def gen_image_for_camp(camp: CampInfo):
         )
 
     print("Camp: ", camp)
-    placed_bars = place_bars(generate_border_bars_for_camp(camp=camp))
 
     return img
 
