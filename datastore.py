@@ -105,15 +105,12 @@ class CampInfo(object):
         self.rv_count = rv_count
 
     def __repr__(self):
-        return f'<CampInfo: {self.name}>'
+        return f'<CampInfo: {self.name} {self.width}x{self.height}>'
 
 def read_csv():
     with open('./placement-temp.csv') as f:
         reader = csv.DictReader(f)
         camps = []
-        skids = set()
-        sfood = set()
-        sug = set()
         for row in reader:
             bool_get = bool_fetcher(row)
 
@@ -126,11 +123,8 @@ def read_csv():
             sound_size = row['Sound'] # how big their soundsystem is: small, medium, nothing
             sound_zone = row['Sound Zone'] # e.g. "SZ 2"
             kids = row['Kids'] # Kids, Kids+
-            skids.add(kids)
             food = row['Food'] # Food, Food+
-            sfood.add(food)
             ug = row['Uneven Ground Data']
-            sug.add(ug)
 
             camps.append(CampInfo(
                 width=int(row['Frontage']),
@@ -145,8 +139,4 @@ def read_csv():
                 uneven_ground=bool_get('Uneven Ground Data'), trees=bool_get('Trees'),
                 rv_count=rv_count
             ))
-    print("Kids: ", skids)
-    print("Food: ", sfood)
-    print("UG: ", sug)
-
     return camps

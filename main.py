@@ -1,7 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 from pprint import pprint
-from typing import List
+from typing import List, Dict
 from enum import Enum, auto
+import math
 from datastore import read_csv, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize
 
 
@@ -25,6 +26,8 @@ COLORS = {
     "SZ 1": "#6D9EEB",
     "SZ 2": "#C9DAF8",
     "SZ 3": "#00FFFF",
+    "#N/A": "#00FF00", # doesn't have a sound zone set (e.g. Unicorn Ranch)
+
     "BLACK": "#000000",
     "WHITE": "#FFFFFF",
     "PINK": "#FF00FF",
@@ -33,6 +36,7 @@ COLORS = {
 
 white='#FFFFFF'
 black='#000000'
+pink='#ff00ff'
 tree_green = '#38761d'
 uneven_ground_brown = '#b45f06'
 kids_yellow = '#fff2cc'
@@ -43,7 +47,7 @@ fire_circle_red = "#cc0000"
 bar = black
 food = "#b4a7d6"
 food_plus = "#9900ff"
-xxx = '#ff00ff'
+xxx = pink
 
 
 # # default vars for sample line
@@ -59,7 +63,7 @@ class BorderBarPosition(Enum):
 def get_pixels_from_feet(distance_in_feet):
   return distance_in_feet * PIXELS_PER_FOOT
 
-def create_rectangle(drawer, text, width, height, color=COLORS["BLACK"], bg=COLORS["PINK"], gradient=None, font=SMALL_FONT):
+def create_rectangle(drawer, text, width, height, color=black, bg=pink, gradient=None, font=SMALL_FONT):
     i = Image.new("RGB", (width, height), bg)
     drawer = ImageDraw.Draw(i)
     # TODO: Font
@@ -106,8 +110,8 @@ def create_circle_with_number(number, diam):
     # TODO: Font
     # TODO: add a border
     # TODO: Wrap text
-    drawer.arc((0,0, diam, diam), 0, 360, fill=COLORS["BLACK"], width=BORDER_WIDTH)
-    drawer.text((tl, tl), str(number), fill=COLORS["BLACK"], font=get_font(8))
+    drawer.arc((0,0, diam, diam), 0, 360, fill=black, width=BORDER_WIDTH)
+    drawer.text((tl, tl), str(number), fill=black, font=get_font(8))
 
     return i
 
@@ -134,20 +138,59 @@ def generate_border_bars_for_camp(camp: CampInfo) -> List[BorderBar]:
     BOTTOM = BorderBarPosition.BOTTOM
     RIGHT = BorderBarPosition.RIGHT
 
-    add_if_true(camp.bar, "BAR", black, position=BOTTOM)
     add_if_true(camp.trees, "Trees", tree_green, position=LEFT)
     add_if_true(camp.uneven_ground, "UnEvEn GrOuNd", uneven_ground_brown, position=LEFT)
-    add_if_true(camp.ada, "ADA", ada_blue)
-    add_if_true(camp.kids == Kids.KIDS, "Kids", fg=black, bg=kids_yellow)
-    add_if_true(camp.kids == Kids.KIDS_PLUS, "Kids+", fg=black, bg=kids_plus_yellow)
-    add_if_true(camp.food == Food.FOOD, "Food", fg=black, bg=food)
-    add_if_true(camp.food == Food.FOOD_PLUS, "Food+", fg=black, bg=food_plus)
+
     add_if_true(camp.fire, "Fire", fire_red, position=RIGHT)
     add_if_true(camp.fire_circle, "Fire Circle", fire_circle_red, position=RIGHT)
-    add_if_true(camp.xxx, "XXX", xxx)
-    # Food is wrong.
-    # kids is wrong
+
+    add_if_true(camp.bar, "BAR", black, position=BOTTOM)
+    add_if_true(camp.xxx, "XXX", xxx, position=BOTTOM)
+    add_if_true(camp.kids == Kids.KIDS, "Kids", fg=black, bg=kids_yellow, position=BOTTOM)
+    add_if_true(camp.kids == Kids.KIDS_PLUS, "Kids+", fg=black, bg=kids_plus_yellow, position=BOTTOM)
+
+    add_if_true(camp.ada, "ADA", ada_blue)
+    add_if_true(camp.food == Food.FOOD, "Food", fg=black, bg=food)
+    add_if_true(camp.food == Food.FOOD_PLUS, "Food+", fg=black, bg=food_plus)
+
     return bars
+
+def place_bars(bars: List[BorderBar]) -> Dict[BorderBarPosition, List[BorderBar]]:
+    """
+    Some things have a preference. Honor that preference if we can. For leftovers,
+    try to keep it to 2 items per side. If we absolutely must, go to 3 items on the right side.
+    """
+    output = {
+        BorderBarPosition.LEFT: [],
+        BorderBarPosition.RIGHT: [],
+        BorderBarPosition.BOTTOM: [],
+    }
+
+    leftovers = []
+
+    for bar in bars:
+        if bar.preferential_position != BorderBarPosition.NONE:
+            output[bar.preferential_position].append(bar)
+        else:
+            leftovers.append(bar)
+
+    if len(leftovers) > 0:
+        pass
+        sorted_positions = sorted(output, key= lambda k: len(output[k]))
+
+        for position in sorted_positions:
+            pass
+            if len(output[position]) < 2 and len(leftovers) > 0:
+                output[position].append(leftovers.pop())
+
+    for l in leftovers:
+        output[BorderBarPosition.RIGHT].append(l)
+        # sort the dictionary entries based on the length of their borderboxes.
+        # loop over it
+        # if the len(values) are < 2, delete them from leftovers and put them in that value.
+        # if after that's done, we still have leftovers.. shove it in the right side.
+        # if len(output[BorderBarPosition.LEFT]) < 2
+    return output
 
 
 def gen_image_for_camp(camp: CampInfo):
@@ -159,7 +202,7 @@ def gen_image_for_camp(camp: CampInfo):
     draw = ImageDraw.Draw(img)
 
 
-    # Header
+    # SZ Header
     add_obj_to_image(
         img,
         create_rectangle(draw, camp.sound_zone, frontage_in_px, HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=get_font(10)),
@@ -174,6 +217,7 @@ def gen_image_for_camp(camp: CampInfo):
     )
 
     # Left Bar
+    # print("Heights: ", camp, camp.height, get_pixels_from_feet(camp.height), depth_in_px, depth_in_px - (HEADER_HEIGHT*2), SIDE_HEIGHT)
     left = create_rectangle(draw, "LEFT BAR", depth_in_px - (HEADER_HEIGHT*2), SIDE_HEIGHT)
     add_obj_to_image(
         img,
@@ -182,11 +226,19 @@ def gen_image_for_camp(camp: CampInfo):
     )
 
     # Right Bar
-    right = create_rectangle(draw, "RIGHT BAR", depth_in_px - (HEADER_HEIGHT*2), SIDE_HEIGHT)
+    side_bar_width = depth_in_px - (HEADER_HEIGHT*2)
+    bar_width = math.floor(side_bar_width/2)
+    top_right = create_rectangle(draw, "TOP RIGHT BAR", bar_width, SIDE_HEIGHT)
     add_obj_to_image(
         img,
-        right.rotate(-90, expand=1),
+        top_right.rotate(-90, expand=1),
         (frontage_in_px-SIDE_HEIGHT, HEADER_HEIGHT) # start at top left of right column
+    )
+    bottom_right = create_rectangle(draw, "BOTTOM RIGHT BAR", bar_width, SIDE_HEIGHT, bg="#F0F0F0")
+    add_obj_to_image(
+        img,
+        bottom_right.rotate(-90, expand=1),
+        (frontage_in_px-SIDE_HEIGHT, HEADER_HEIGHT + bar_width) # start after the header & other bar's height
     )
 
     # Footer
@@ -200,13 +252,13 @@ def gen_image_for_camp(camp: CampInfo):
     # (FRONTAGE)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.width), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=COLORS["BLACK"], font=get_font(8)),
+        create_rectangle(draw, str(camp.width), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=black, font=get_font(8)),
         (SIDE_HEIGHT, img.height - (2 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
     # (DEPTH)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.height), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=COLORS["BLACK"], font=get_font(8)).rotate(-90, expand=1),
+        create_rectangle(draw, str(camp.height), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=black, font=get_font(8)).rotate(-90, expand=1),
         (SIDE_HEIGHT, img.height - (3 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
@@ -219,20 +271,30 @@ def gen_image_for_camp(camp: CampInfo):
         )
 
     print("Camp: ", camp)
-    pprint(generate_border_bars_for_camp(camp=camp))
+    placed_bars = place_bars(generate_border_bars_for_camp(camp=camp))
 
     return img
 
 
-# with open('img.jpg', 'w') as f:
-#     img.save(f)
+
 if __name__ == '__main__':
     import sys
     camps = read_csv()
+    seen = []
     for i, camp in enumerate(camps):
-        if i == 3:
-            sys.exit()
+        if camp.height < 30 or camp.width < 30:
+            print(f"Skipping {camp} because their frontage is too small for now.")
+            continue
+
+        bbar = generate_border_bars_for_camp(camp)
+        count = len(bbar)
+        seen.append((count, camp, bbar))
+        # if i == 3:
+        #     sys.exit()
         img = gen_image_for_camp(camp)
         # img.show()
-        print(camp.__dict__)
-        print()
+        with open(f'images/{camp.name.replace(" ", "_").lower()}.jpg', 'w') as f:
+            img.save(f, subsampling=0, quality=100)
+
+
+    print([x for x in seen if x[0] >= 6])
