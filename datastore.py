@@ -122,9 +122,10 @@ def read_csv():
             interactivity_time = row['Interactivity Time/Name Highlight Color']
             sound_size = row['Sound'] # how big their soundsystem is: small, medium, nothing
             sound_zone = row['Sound Zone'] # e.g. "SZ 2"
-            kids = row['Kids'] # Kids, Kids+
+            kids = row['Kids v Kids+'] # Kids, Kids+
             food = row['Food'] # Food, Food+
-            ug = row['Uneven Ground Data']
+            if 'plunder' in row[' '].lower():
+                import pdb; pdb.set_trace()
 
             camps.append(CampInfo(
                 width=int(row['Frontage']),
@@ -133,8 +134,8 @@ def read_csv():
                 camp_type=camp_type, sound_zone=sound_zone, interactivity_time=interactivity_time, sound_size=sound_size,
                 neighborhood_preference=row['neighborhood'].strip().split(' '),
                 coffee=bool_get('Coffee'),tea=bool_get('Tea'),fire=bool_get('Fire'), fire_circle=bool_get('Fire Circle'),
-                food=Food.from_string(row['Food']),
-                kids=Kids.from_string(row['Kids']),
+                food=Food.from_string(food),
+                kids=Kids.from_string(kids),
                 bar=bool_get('Bar'), ada=bool_get('ADA'), xxx=bool_get('XXX'),
                 uneven_ground=bool_get('Uneven Ground Data'), trees=bool_get('Trees'),
                 rv_count=rv_count

@@ -144,7 +144,7 @@ def generate_border_bars_for_camp(camp: CampInfo) -> List[BorderBar]:
     add_if_true(camp.fire, "Fire", fire_red, position=RIGHT)
     add_if_true(camp.fire_circle, "Fire Circle", fire_circle_red, position=RIGHT)
 
-    add_if_true(camp.bar, "BAR", black, position=BOTTOM)
+    add_if_true(camp.bar, "BAR", fg=white, bg=black, position=BOTTOM)
     add_if_true(camp.xxx, "XXX", xxx, position=BOTTOM)
     add_if_true(camp.kids == Kids.KIDS, "Kids", fg=black, bg=kids_yellow, position=BOTTOM)
     add_if_true(camp.kids == Kids.KIDS_PLUS, "Kids+", fg=black, bg=kids_plus_yellow, position=BOTTOM)
@@ -220,52 +220,116 @@ def gen_image_for_camp(camp: CampInfo):
     border_bars = place_bars(generate_border_bars_for_camp(camp))
     side_bar_width = depth_in_px - (HEADER_HEIGHT*2)
 
-    # LEFT
-    if len(border_bars[BorderBarPosition.LEFT]) > 0:
-        pass
-        bar_width = math.floor(side_bar_width/len(border_bars[BorderBarPosition.LEFT]))
-        b1 =  border_bars[BorderBarPosition.LEFT][0]
-    if len(border_bars[BorderBarPosition.LEFT]) == 2:
-        b2 =  border_bars[BorderBarPosition.LEFT][1]
-        if b1 != None:
-            top_left = create_rectangle(draw, b1.text, bar_width, SIDE_HEIGHT, bg=b1.background_color)
+
+    for position, bars in border_bars.items():
+        if len(bars) == 0:
+            continue
+
+
+        if position == BorderBarPosition.BOTTOM:
+            width = frontage_in_px
+            height = HEADER_HEIGHT
+        else:
+            width = depth_in_px - (HEADER_HEIGHT*2)
+            height = SIDE_HEIGHT
+
+        bar_sections = len(bars)
+        bar_width = math.floor(width/bar_sections)
+
+        rotation = -90
+        if position == BorderBarPosition.BOTTOM:
+            rotation = 0
+
+        bar_offset = 0 # space occupied by other bar splits.
+
+        for bar in bars:
+
+            if position == BorderBarPosition.BOTTOM:
+                y_pos = depth_in_px - HEADER_HEIGHT
+                x_position = bar_offset
+            else:
+                y_pos = HEADER_HEIGHT + bar_offset
+                x_position = 0
+                if position == BorderBarPosition.RIGHT:
+                    x_position = frontage_in_px - SIDE_HEIGHT
+
+            print(f"Going to draw a rectangle for {camp}'s {bar.text} attribute at {bar_width}x{height}")
+            print(f"that rectangle will be placed at {x_position}, {y_pos}")
+            in_progress = create_rectangle(draw, bar.text, bar_width, height, bg=bar.background_color, color=bar.text_color)
             add_obj_to_image(
                 img,
-                top_left.rotate(-90, expand=1),
-                (0, HEADER_HEIGHT) # start at top left of left column
+                in_progress.rotate(rotation, expand=1),
+                (x_position, y_pos)
             )
-        if b2 != None:
-            bottom_left = create_rectangle(draw, b2.text, bar_width, SIDE_HEIGHT, bg=b2.background_color)
-            add_obj_to_image(
-                img,
-                bottom_left.rotate(-90, expand=1),
-                (0, HEADER_HEIGHT + bar_width) # start at top left of left column
-            )
+            bar_offset += bar_width
+
+    # # LEFT
+    # if len(border_bars[BorderBarPosition.LEFT]) > 0:
+    #     pass
+    #     bar_width = math.floor(side_bar_width/len(border_bars[BorderBarPosition.LEFT]))
+    #     b1 =  border_bars[BorderBarPosition.LEFT][0]
+    # if len(border_bars[BorderBarPosition.LEFT]) == 2:
+    #     b2 =  border_bars[BorderBarPosition.LEFT][1]
+    #     if b1 != None:
+    #         top_left = create_rectangle(draw, b1.text, bar_width, SIDE_HEIGHT, bg=b1.background_color)
+    #         add_obj_to_image(
+    #             img,
+    #             top_left.rotate(-90, expand=1),
+    #             (0, HEADER_HEIGHT) # start at top left of left column
+    #         )
+    #     if b2 != None:
+    #         bottom_left = create_rectangle(draw, b2.text, bar_width, SIDE_HEIGHT, bg=b2.background_color)
+    #         add_obj_to_image(
+    #             img,
+    #             bottom_left.rotate(-90, expand=1),
+    #             (0, HEADER_HEIGHT + bar_width) # start at top left of left column
+    #         )
 
 
+    # # RIGHT
+    # if len(border_bars[BorderBarPosition.RIGHT]) > 0:
+    #     pass
+    #     bar_width = math.floor(side_bar_width/len(border_bars[BorderBarPosition.RIGHT]))
+    #     b1 =  border_bars[BorderBarPosition.RIGHT][0]
+    # if len(border_bars[BorderBarPosition.RIGHT]) > 1:
+    #     b2 =  border_bars[BorderBarPosition.RIGHT][1]
+    #     if b1 != None:
+    #         top_left = create_rectangle(draw, b1.text, bar_width, SIDE_HEIGHT, bg=b1.background_color)
+    #         add_obj_to_image(
+    #             img,
+    #             top_left.rotate(-90, expand=1),
+    #             (0, HEADER_HEIGHT) # start at top left of left column
+    #         )
+    #     if b2 != None:
+    #         bottom_left = create_rectangle(draw, b2.text, bar_width, SIDE_HEIGHT, bg=b2.background_color)
+    #         add_obj_to_image(
+    #             img,
+    #             bottom_left.rotate(-90, expand=1),
+    #             (0, HEADER_HEIGHT + bar_width) # start at top left of left column
+    #         )
 
-    # Right Bar
-    # side_bar_width = depth_in_px - (HEADER_HEIGHT*2)
-    bar_width = math.floor(side_bar_width/2)
-    top_right = create_rectangle(draw, "TOP RIGHT BAR", bar_width, SIDE_HEIGHT)
-    add_obj_to_image(
-        img,
-        top_right.rotate(-90, expand=1),
-        (frontage_in_px-SIDE_HEIGHT, HEADER_HEIGHT) # start at top left of right column
-    )
-    bottom_right = create_rectangle(draw, "BOTTOM RIGHT BAR", bar_width, SIDE_HEIGHT, bg="#F0F0F0")
-    add_obj_to_image(
-        img,
-        bottom_right.rotate(-90, expand=1),
-        (frontage_in_px-SIDE_HEIGHT, HEADER_HEIGHT + bar_width) # start after the header & other bar's height
-    )
+    # # Right Bar
+    # # side_bar_width = depth_in_px - (HEADER_HEIGHT*2)
+    # bar_width = math.floor(side_bar_width/2)
+    # top_right = create_rectangle(draw, "TOP RIGHT BAR", bar_width, SIDE_HEIGHT)
+    # add_obj_to_image(
+    #     img,
+    #     top_right.rotate(-90, expand=1),
+    #     (frontage_in_px-SIDE_HEIGHT, HEADER_HEIGHT) # start at top left of right column
+    # )
+    # bottom_right = create_rectangle(draw, "BOTTOM RIGHT BAR", bar_width, SIDE_HEIGHT, bg="#F0F0F0")
+    # add_obj_to_image(
+    #     img,
+    #     bottom_right.rotate(-90, expand=1),
+    #     (frontage_in_px-SIDE_HEIGHT, HEADER_HEIGHT + bar_width) # start after the header & other bar's height
+    # )
 
     # Footer
-    add_obj_to_image(
-        img,
-        create_rectangle(draw, "FOOTER", frontage_in_px, HEADER_HEIGHT),
-        (0, img.height - HEADER_HEIGHT) # start at bottom left, offset by how tall the rectangle is.
-    )
+    # add_obj_to_image(
+    #     img,
+    #     create_rectangle(draw, "FOOTER", frontage_in_px, HEADER_HEIGHT),
+    #     (0, img.height - HEADER_HEIGHT) # start at bottom left, offset by how tall the rectangle is.
+    # )
 
     # DIMS
     # (FRONTAGE)
@@ -301,6 +365,10 @@ if __name__ == '__main__':
     camps = read_csv()
     seen = []
     for i, camp in enumerate(camps):
+        if len(sys.argv) > 0:
+            substring_match = sys.argv[1]
+            if substring_match.lower() not in camp.name.lower():
+                continue
         if camp.height < 30 or camp.width < 30:
             print(f"Skipping {camp} because their frontage is too small for now.")
             continue
