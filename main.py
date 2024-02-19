@@ -1,16 +1,19 @@
 from PIL import Image, ImageDraw, ImageFont
 from pprint import pprint
-import csv
 from typing import List
-from enum import Enum
+from enum import Enum, auto
+from datastore import read_csv, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize
+
 
 # CONSTANTS
 PIXELS_PER_FOOT = 2.4
 SMALL_FONT_SIZE = 6
 LARGE_FONT_SIZE = 20
 # System dependent. There is a default if we don't specify any font thing.
-SMALL_FONT = ImageFont.truetype(font='Roboto-Regular.ttf', size=SMALL_FONT_SIZE)
-LARGE_FONT = ImageFont.truetype(font='Roboto-Regular.ttf', size=LARGE_FONT_SIZE)
+SMALL_FONT = ImageFont.truetype(font='./Roboto-Regular.ttf', size=SMALL_FONT_SIZE)
+LARGE_FONT = ImageFont.truetype(font='./Roboto-Regular.ttf', size=LARGE_FONT_SIZE)
+def get_font(size=SMALL_FONT_SIZE):
+    return ImageFont.truetype(font='./Roboto-Regular.ttf', size=size)
 
 CIRCLE_HEIGHT = 25
 BORDER_WIDTH = 2
@@ -25,22 +28,44 @@ COLORS = {
     "BLACK": "#000000",
     "WHITE": "#FFFFFF",
     "PINK": "#FF00FF",
+
 }
 
-# default vars for sample line
-frontage = 60
-depth = 120
+white='#FFFFFF'
+black='#000000'
+tree_green = '#38761d'
+uneven_ground_brown = '#b45f06'
+kids_yellow = '#fff2cc'
+kids_plus_yellow = '#ffd966'
+ada_blue = '#0000ff'
+fire_red = '#ff0000'
+fire_circle_red = "#cc0000"
+bar = black
+food = "#b4a7d6"
+food_plus = "#9900ff"
+xxx = '#ff00ff'
+
+
+# # default vars for sample line
+# frontage = 60
+# depth = 120
+
+class BorderBarPosition(Enum):
+    LEFT = auto()
+    RIGHT = auto()
+    BOTTOM = auto()
+    NONE = auto()
 
 def get_pixels_from_feet(distance_in_feet):
   return distance_in_feet * PIXELS_PER_FOOT
 
-def create_rectangle(drawer, text, width, height, color=COLORS["BLACK"], bg=COLORS["PINK"], gradient=None):
+def create_rectangle(drawer, text, width, height, color=COLORS["BLACK"], bg=COLORS["PINK"], gradient=None, font=SMALL_FONT):
     i = Image.new("RGB", (width, height), bg)
     drawer = ImageDraw.Draw(i)
     # TODO: Font
     # TODO: add a border
     # TODO: Wrap text
-    drawer.text((5, 5), text, fill=color)
+    drawer.text((5, 5), text, fill=color, font=font)
 
     return i
 
@@ -54,19 +79,6 @@ def add_obj_to_image(image, rect, top_left):
 def determine_rectangle_placement():
     return (50, 50);
 
-def create_circle_with_number(number, diam):
-    # TODO FIGURE OUT TRANSPARENT BG
-    i = Image.new("RGB", (diam, diam), COLORS["WHITE"])
-    drawer = ImageDraw.Draw(i)
-
-    tl = round((CIRCLE_HEIGHT - SMALL_FONT_SIZE) / 2)
-    # TODO: Font
-    # TODO: add a border
-    # TODO: Wrap text
-    drawer.arc((0,0, diam, diam), 0, 360, fill=COLORS["BLACK"], width=BORDER_WIDTH)
-    drawer.text((tl, tl), str(number), fill=COLORS["BLACK"])
-
-    return i
 
 # def add_gradient(drawer, rect):
 #     print (rect)
@@ -84,105 +96,58 @@ def create_circle_with_number(number, diam):
 
 #     return
 
-def bool_fetcher(row):
-    def bool_is_set(key):
-        return row[key].strip() != '' or row[key].lower() == 'no'
-    return bool_is_set
 
-class SoundZone(Enum):
-    SZ_1 = 'SZ 1'
-    SZ_2 = 'SZ 2'
-    SZ_3 = 'SZ 3'
-    NA   = '#N/A'
+def create_circle_with_number(number, diam):
+    # TODO FIGURE OUT TRANSPARENT BG
+    i = Image.new("RGB", (diam, diam), COLORS["WHITE"])
+    drawer = ImageDraw.Draw(i)
 
-class CampType(Enum):
-    WORK_SUPPORT = 'Work Support Camp'
-    ART_SUPPORT = 'Art Support Camp'
-    THEME_CAMP = 'Theme Camp'
+    tl = round((CIRCLE_HEIGHT - SMALL_FONT_SIZE) / 2)
+    # TODO: Font
+    # TODO: add a border
+    # TODO: Wrap text
+    drawer.arc((0,0, diam, diam), 0, 360, fill=COLORS["BLACK"], width=BORDER_WIDTH)
+    drawer.text((tl, tl), str(number), fill=COLORS["BLACK"], font=get_font(8))
 
-    @classmethod
-    def from_string(s: str) -> 'CampType':
-        if s == 'Work Support Camp':
-            return CampType.WORK_SUPPORT
-        if s == 'Art Support Camp':
-            return CampType.ART_SUPPORT
-        return CampType.THEME_CAMP
+    return i
 
-class InteractivityTime(Enum):
-    ART_SUPPORT = 'Art Support Camp'
-    WORK_SUPPORT = 'Work Support Camp'
-    MORNING = 'Morning'
-    AFTERNOON = 'Afternoon'
-    LATE_AFTERNOON = 'Late Afternoon'
-    EVENING = 'Evening'
-    LATE_NIGHT = 'Late Night'
-    EMPTY = ''
-    # TODO: Blank string?
+class BorderBar(object):
+    "Text to annotate the attributes of a camp. It decorates the border of the card."
 
-class SoundSize(Enum):
-    SMALL = 1
-    MEDIUM = 2
-    EMPTY = 3
-
-class CampInfo(object):
-    def __init__(
-            self, width: int, height: int, name: str, camp_type: CampType,
-            sound_zone: SoundZone, interactivity_time: InteractivityTime,
-            sound_size: SoundSize, neighborhood_preference: List[str],
-            coffee: bool, food: bool, fire: bool, fire_circle: bool, kids: bool,
-            bar: bool, ada: bool, xxx: bool, trees: bool, uneven_ground: bool,
-            rv_count: int):
-        self.width = width
-        self.height = height
-        self.name = name
-        self.camp_type = camp_type
-        self.sound_zone = sound_zone
-        self.interactivity_time = interactivity_time
-        self.sound_size = sound_size
-        self.neighborhood_preference = neighborhood_preference
-        self.coffee = coffee
-        self.food = food
-        self.fire = fire
-        self.fire_circle = fire_circle
-        self.kids = kids
-        self.bar = bar
-        self.ada = ada
-        self.xxx = xxx
-        self.trees = trees
-        self.uneven_ground = uneven_ground
-        self.rv_count = rv_count
+    def __init__(self, text: str, text_color, background_color, preferential_position: BorderBarPosition = BorderBarPosition.NONE):
+        self.text = text
+        self.text_color = text_color
+        self.background_color = background_color
+        self.preferential_position = preferential_position
 
     def __repr__(self):
-        return f'<CampInfo: {self.name}>'
+        return f'<BorderBar {self.text}>'
 
-def read_csv():
-    with open('./placement-temp.csv') as f:
-        reader = csv.DictReader(f)
-        camps = []
-        for row in reader:
-            bool_get = bool_fetcher(row)
 
-            try:
-                rv_count = int(row['RVs'])
-            except ValueError:
-                rv_count = 0
-            camp_type = row['Camp Type']  # e.g.  "Theme Camp"
-            interactivity_time = row['Interactivity Time/Name Highlight Color']
-            sound_size = row['Sound'] # how big their soundsystem is: small, medium, nothing
-            sound_zone = row['Sound Zone'] # e.g. "SZ 2"
+def generate_border_bars_for_camp(camp: CampInfo) -> List[BorderBar]:
+    bars = []
+    def add_if_true(condition: bool, txt, bg, fg=white, position=BorderBarPosition.NONE):
+        if condition:
+            bars.append(BorderBar(txt, fg, bg, position))
 
-            camps.append(CampInfo(
-                width=int(row['Frontage']),
-                height=int(row['Depth']),
-                name=row[' '],
-                camp_type=camp_type, sound_zone=sound_zone, interactivity_time=interactivity_time, sound_size=sound_size,
-                neighborhood_preference=row['neighborhood'].split(' '),
-                coffee=bool_get('Coffee'),food=bool_get('Food'), fire=bool_get('Fire'), fire_circle=bool_get('Fire Circle'),
-                kids=bool_get('Kids'),bar=bool_get('Bar'), ada=bool_get('ADA'), xxx=bool_get('XXX'),
-                uneven_ground=bool_get('Uneven Ground Data'), trees=bool_get('Trees'),
-                rv_count=rv_count
-            ))
-    return camps
+    LEFT = BorderBarPosition.LEFT
+    BOTTOM = BorderBarPosition.BOTTOM
+    RIGHT = BorderBarPosition.RIGHT
+
+    add_if_true(camp.bar, "BAR", black, position=BOTTOM)
+    add_if_true(camp.trees, "Trees", tree_green, position=LEFT)
+    add_if_true(camp.uneven_ground, "UnEvEn GrOuNd", uneven_ground_brown, position=LEFT)
+    add_if_true(camp.ada, "ADA", ada_blue)
+    add_if_true(camp.kids == Kids.KIDS, "Kids", fg=black, bg=kids_yellow)
+    add_if_true(camp.kids == Kids.KIDS_PLUS, "Kids+", fg=black, bg=kids_plus_yellow)
+    add_if_true(camp.food == Food.FOOD, "Food", fg=black, bg=food)
+    add_if_true(camp.food == Food.FOOD_PLUS, "Food+", fg=black, bg=food_plus)
+    add_if_true(camp.fire, "Fire", fire_red, position=RIGHT)
+    add_if_true(camp.fire_circle, "Fire Circle", fire_circle_red, position=RIGHT)
+    add_if_true(camp.xxx, "XXX", xxx)
+    # Food is wrong.
+    # kids is wrong
+    return bars
 
 
 def gen_image_for_camp(camp: CampInfo):
@@ -197,7 +162,7 @@ def gen_image_for_camp(camp: CampInfo):
     # Header
     add_obj_to_image(
         img,
-        create_rectangle(draw, camp.sound_zone, frontage_in_px, HEADER_HEIGHT),
+        create_rectangle(draw, camp.sound_zone, frontage_in_px, HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=get_font(10)),
         (0,0) # start at top left.
     )
 
@@ -235,31 +200,39 @@ def gen_image_for_camp(camp: CampInfo):
     # (FRONTAGE)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.width), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=COLORS["BLACK"]),
+        create_rectangle(draw, str(camp.width), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=COLORS["BLACK"], font=get_font(8)),
         (SIDE_HEIGHT, img.height - (2 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
     # (DEPTH)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.height), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=COLORS["BLACK"]).rotate(-90, expand=1),
+        create_rectangle(draw, str(camp.height), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=COLORS["BLACK"], font=get_font(8)).rotate(-90, expand=1),
         (SIDE_HEIGHT, img.height - (3 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
-    # RV Circle
-    add_obj_to_image(
-        img,
-        create_circle_with_number(3, CIRCLE_HEIGHT),
-        (frontage_in_px - (SIDE_HEIGHT + CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
-    )
+    if camp.rv_count > 0:
+        # RV Circle
+        add_obj_to_image(
+            img,
+            create_circle_with_number(camp.rv_count, CIRCLE_HEIGHT),
+            (frontage_in_px - (SIDE_HEIGHT + CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+        )
+
+    print("Camp: ", camp)
+    pprint(generate_border_bars_for_camp(camp=camp))
 
     return img
-
 
 
 # with open('img.jpg', 'w') as f:
 #     img.save(f)
 if __name__ == '__main__':
+    import sys
     camps = read_csv()
-    camp = camps[0]
-    img = gen_image_for_camp(camp)
-    img.show()
+    for i, camp in enumerate(camps):
+        if i == 3:
+            sys.exit()
+        img = gen_image_for_camp(camp)
+        # img.show()
+        print(camp.__dict__)
+        print()
