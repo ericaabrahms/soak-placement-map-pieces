@@ -4,6 +4,7 @@ from typing import List, Dict
 from enum import Enum, auto
 import math
 from datastore import read_csv, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize
+import textwrap
 
 
 # CONSTANTS
@@ -11,13 +12,12 @@ PIXELS_PER_FOOT = 2.4
 SMALL_FONT_SIZE = 6
 LARGE_FONT_SIZE = 20
 # System dependent. There is a default if we don't specify any font thing.
-SMALL_FONT = ImageFont.truetype(font='./Roboto-Regular.ttf', size=SMALL_FONT_SIZE)
-LARGE_FONT = ImageFont.truetype(font='./Roboto-Regular.ttf', size=LARGE_FONT_SIZE)
 def get_font(size=SMALL_FONT_SIZE):
-    return ImageFont.truetype(font='./Roboto-Regular.ttf', size=size)
+    return ImageFont.truetype(font='./RobotoMono-Regular.ttf', size=size)
 
 CIRCLE_HEIGHT = 25
 BORDER_WIDTH = 2
+ICON_HEIGHT = 20
 
 HEADER_HEIGHT = 25
 SIDE_HEIGHT = 15
@@ -63,13 +63,13 @@ class BorderBarPosition(Enum):
 def get_pixels_from_feet(distance_in_feet):
   return distance_in_feet * PIXELS_PER_FOOT
 
-def create_rectangle(drawer, text, width, height, color=black, bg=pink, gradient=None, font=SMALL_FONT):
+def create_rectangle(drawer, text, width, height, color=black, bg=pink, gradient=None, font=get_font()):
     i = Image.new("RGB", (width, height), bg)
     drawer = ImageDraw.Draw(i)
     # TODO: Font
     # TODO: add a border
     # TODO: Wrap text
-    drawer.text((5, 5), text, fill=color, font=font)
+    drawer.multiline_text((5, 5), text, fill=color, font=font)
 
     return i
 
@@ -82,24 +82,6 @@ def add_obj_to_image(image, rect, top_left):
 
 def determine_rectangle_placement():
     return (50, 50);
-
-
-# def add_gradient(drawer, rect):
-#     print (rect)
-#     def interpolate(f_co, t_co, interval):
-#         det_co =[(t - f) / interval for f , t in zip(f_co, t_co)]
-#         for i in range(interval):
-#             yield [round(f + det * i) for f, det in zip(f_co, det_co)]
-
-#     gradient = Image.new('RGBA', rect.size, color=0)
-
-#     f_co = (13, 255, 154)
-#     t_co = (4, 128, 30)
-#     for i, color in enumerate(interpolate(f_co, t_co, rect.width * 2)):
-#         draw.line([(i, 0), (0, i)], tuple(color), width=1)
-
-#     return
-
 
 def create_circle_with_number(number, diam):
     # TODO FIGURE OUT TRANSPARENT BG
@@ -210,9 +192,10 @@ def gen_image_for_camp(camp: CampInfo):
     )
 
     # Camp Name
+    wrapped_name = '\n'.join(textwrap.wrap(camp.name, width=12))
     add_obj_to_image(
         img,
-        create_rectangle(draw, camp.name, frontage_in_px - SIDE_HEIGHT *2, HEADER_HEIGHT, bg=COLORS["WHITE"]),
+        create_rectangle(draw, wrapped_name, frontage_in_px - SIDE_HEIGHT *2, HEADER_HEIGHT, bg=COLORS["WHITE"], font=get_font(16)),
         (SIDE_HEIGHT, HEADER_HEIGHT),
     )
 
@@ -275,6 +258,23 @@ def gen_image_for_camp(camp: CampInfo):
         (SIDE_HEIGHT, img.height - (3 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
+    # COFFEE
+    if camp.coffee:
+        add_obj_to_image(
+            img,
+            Image.open('./assets/coffee.jpg').resize((ICON_HEIGHT, ICON_HEIGHT)),
+            (frontage_in_px - (SIDE_HEIGHT + 2 * CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+        )
+    # TEA
+    if camp.tea:
+        print(f'{camp.name}: {camp.tea}')
+        add_obj_to_image(
+            img,
+            Image.open('./assets/tea.jpg').resize((ICON_HEIGHT, ICON_HEIGHT)),
+            (frontage_in_px - (SIDE_HEIGHT + 2 * CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+        )
+
+
     # RV Circle
     if camp.rv_count > 0:
         # RV Circle
@@ -295,7 +295,7 @@ if __name__ == '__main__':
     camps = read_csv()
     seen = []
     for i, camp in enumerate(camps):
-        if len(sys.argv) > 0:
+        if len(sys.argv) > 1:
             substring_match = sys.argv[1]
             if substring_match.lower() not in camp.name.lower():
                 continue
