@@ -267,13 +267,18 @@ def gen_image_for_camp(camp: CampInfo):
         )
     # TEA
     if camp.tea:
-        print(f'{camp.name}: {camp.tea}')
         add_obj_to_image(
             img,
             Image.open('./assets/tea.jpg').resize((ICON_HEIGHT, ICON_HEIGHT)),
             (frontage_in_px - (SIDE_HEIGHT + 2 * CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
         )
 
+    if camp.sound_size != SoundSize.NONE:
+        add_obj_to_image(
+            img,
+            Image.open(f'./assets/sound_{camp.sound_size.value}.jpg').resize((ICON_HEIGHT, ICON_HEIGHT)),
+            (frontage_in_px - (SIDE_HEIGHT + 2 * CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT + ICON_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+        )
 
     # RV Circle
     if camp.rv_count > 0:

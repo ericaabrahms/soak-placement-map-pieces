@@ -46,7 +46,18 @@ class InteractivityTime(Enum):
 class SoundSize(Enum):
     SMALL = 1
     MEDIUM = 2
-    EMPTY = 3
+    LARGE = 3
+    NONE = 0
+
+    @classmethod
+    def from_string(cls, s: str) -> 'SoundSize':
+        if s.lower() == 'small':
+            return SoundSize.SMALL
+        if s.lower() == 'medium':
+            return SoundSize.MEDIUM
+        if s.lower() == 'large':
+            return SoundSize.LARGE
+        return SoundSize.NONE
 
 class Kids(Enum):
     KIDS = 'Kids'
@@ -130,7 +141,7 @@ def read_csv():
                 width=int(row['Frontage']),
                 height=int(row['Depth']),
                 name=row[' '],
-                camp_type=camp_type, sound_zone=sound_zone, interactivity_time=interactivity_time, sound_size=sound_size,
+                camp_type=camp_type, sound_zone=sound_zone, interactivity_time=interactivity_time, sound_size=SoundSize.from_string(sound_size),
                 neighborhood_preference=row['neighborhood'].strip().split(' '),
                 coffee=bool_get('Coffee'),tea=bool_get('Tea'),fire=bool_get('Fire'), fire_circle=bool_get('Fire Circle'),
                 food=Food.from_string(food),
