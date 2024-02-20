@@ -6,7 +6,7 @@ x create vertical rectangle with text
     x rotate rectangle
 - create a rectangle with a gradient background with text
     - rectangle background is gradient
-- add an image (e.g. coffee, tea, sound)
+x add an image (e.g. coffee, tea, sound)
 x add a circle with a number in the middle
 - determine where to place top left corner of circle, rectangle, text (that's not hard coded)
 - loop through geography, interactivity, to place in border of rectangle
