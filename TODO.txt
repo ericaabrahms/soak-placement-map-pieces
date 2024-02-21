@@ -19,10 +19,10 @@ x loop through geography, interactivity, to place in border of rectangle
 - Add neighborhood preference (split sz bar in 2?)
 
 CSV management:
-- import CSV
-- loop through each line (map headings to values?) e.g. {sound_zone: "SZ 1"}
+x import CSV
+x loop through each line (map headings to values?) e.g. {sound_zone: "SZ 1"}
 - create map piece
-- save map piece
+x save map piece
 
 - process one line?
 - process ALL lines
