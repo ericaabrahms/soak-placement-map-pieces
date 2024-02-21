@@ -94,7 +94,7 @@ def create_circle_with_number(number, diam):
     i = Image.new("RGB", (diam, diam), COLORS["WHITE"])
     drawer = ImageDraw.Draw(i)
 
-    tl = round((CIRCLE_HEIGHT - SMALL_FONT_SIZE) / 2)
+    tl = math.floor((CIRCLE_HEIGHT - SMALL_FONT_SIZE) / 2)
     # TODO: Font
     # TODO: add a border
     # TODO: Wrap text
@@ -192,8 +192,8 @@ def get_interactivity_time_color(camp: CampInfo):
     return white
 
 def gen_image_for_camp(camp: CampInfo):
-    frontage_in_px = round(get_pixels_from_feet(camp.width))
-    depth_in_px = round(get_pixels_from_feet(camp.height))
+    frontage_in_px = math.floor(get_pixels_from_feet(camp.width))
+    depth_in_px = math.floor(get_pixels_from_feet(camp.height))
 
     img = Image.new("RGB", (frontage_in_px, depth_in_px), COLORS["WHITE"])
 
