@@ -10,8 +10,8 @@ x add an image (e.g. coffee, tea, sound)
 x add a circle with a number in the middle
 - determine where to place top left corner of circle, rectangle, text (that's not hard coded)
 x loop through geography, interactivity, to place in border of rectangle
-- Make red text for hard SZ preference ('Make SZ work? Data' == 'We would prefer not to be placed.')
-- Handle camp name bg color based on interactivity time
+x Make red text for hard SZ preference ('Make SZ work? Data' == 'We would prefer not to be placed.')
+x Handle camp name bg color based on interactivity time
     yellow = text.contains('morning')
     red = text.contains('afternoon')  || text.contains('evening')
     blue = text.contains('night')

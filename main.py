@@ -3,7 +3,7 @@ from pprint import pprint
 from typing import List, Dict
 from enum import Enum, auto
 import math
-from datastore import read_csv, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize
+from datastore import read_csv, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize, SoundZoneHardPreference
 import textwrap
 
 
@@ -48,6 +48,7 @@ bar = black
 food = "#b4a7d6"
 food_plus = "#9900ff"
 xxx = pink
+red = "#FF0000"
 
 interactivity_morning = "#ffff00"
 interactivity_afternoon = "#f4cbcc"
@@ -200,9 +201,12 @@ def gen_image_for_camp(camp: CampInfo):
 
 
     # SZ Header
+    fg = black
+    if camp.sound_zone_hard_preference == SoundZoneHardPreference.YES:
+        fg = red
     add_obj_to_image(
         img,
-        create_rectangle(draw, camp.sound_zone, frontage_in_px, HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=get_font(10)),
+        create_rectangle(draw, camp.sound_zone, frontage_in_px, HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=get_font(10), color=fg),
         (0,0) # start at top left.
     )
 

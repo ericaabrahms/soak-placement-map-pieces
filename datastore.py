@@ -9,6 +9,8 @@ def bool_fetcher(row):
             return False
         if row[key].lower() == 'no':
             return False
+        # if row[key].lower() == 'we will make it work!':
+        #     return False
         return True
     return bool_is_set
 
@@ -85,13 +87,17 @@ class Food(Enum):
             return Food.FOOD_PLUS
         return Food.NONE
 
+class SoundZoneHardPreference(Enum):
+    YES = 'We would prefer not to be placed.'
+    NO = 'We will make it work!'
+    NONE = 'N/A'
 
 
 class CampInfo(object):
     def __init__(
             self, width: int, height: int, name: str, camp_type: CampType,
             sound_zone: SoundZone, interactivity_time: InteractivityTime,
-            sound_size: SoundSize, neighborhood_preference: List[str],
+            sound_size: SoundSize, sound_zone_hard_preference: bool, neighborhood_preference: List[str],
             coffee: bool, tea: bool, food: Food, fire: bool, fire_circle: bool, kids: Kids,
             bar: bool, ada: bool, xxx: bool, trees: bool, uneven_ground: bool,
             rv_count: int):
@@ -100,6 +106,7 @@ class CampInfo(object):
         self.name = name
         self.camp_type = camp_type
         self.sound_zone = sound_zone
+        self.sound_zone_hard_preference = sound_zone_hard_preference
         self.interactivity_time = interactivity_time
         self.sound_size = sound_size
         self.neighborhood_preference = neighborhood_preference
@@ -133,6 +140,7 @@ def read_csv():
             camp_type = row['Camp Type']  # e.g.  "Theme Camp"
             interactivity_time = row['Interactivity Time/Name Highlight Color']
             sound_size = row['Sound'] # how big their soundsystem is: small, medium, nothing
+            sound_zone_hard_preference = row['Make SZ work? Data']
             sound_zone = row['Sound Zone'] # e.g. "SZ 2"
             kids = row['Kids v Kids+'] # Kids, Kids+
             food = row['Food'] # Food, Food+
@@ -141,7 +149,7 @@ def read_csv():
                 width=int(row['Frontage']),
                 height=int(row['Depth']),
                 name=row[' '],
-                camp_type=camp_type, sound_zone=sound_zone, interactivity_time=interactivity_time, sound_size=SoundSize.from_string(sound_size),
+                camp_type=camp_type, sound_zone=sound_zone, sound_zone_hard_preference=SoundZoneHardPreference(sound_zone_hard_preference), interactivity_time=interactivity_time, sound_size=SoundSize.from_string(sound_size),
                 neighborhood_preference=row['neighborhood'].strip().split(' '),
                 coffee=bool_get('Coffee'),tea=bool_get('Tea'),fire=bool_get('Fire'), fire_circle=bool_get('Fire Circle'),
                 food=Food.from_string(food),
