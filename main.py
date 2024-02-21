@@ -289,7 +289,7 @@ def gen_image_for_camp(camp: CampInfo):
     if camp.coffee:
         add_obj_to_image(
             img,
-            Image.open('./assets/coffee.jpg').resize((smaller_sixth, smaller_sixth)),
+            Image.open('./assets/coffee.png').resize((smaller_sixth, smaller_sixth)),
             (frontage_in_px - (3 * smaller_sixth), depth_in_px - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
         )
     # TEA

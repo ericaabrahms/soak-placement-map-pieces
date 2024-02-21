@@ -29,7 +29,7 @@ x save map piece
 
 Nice to have:
 ? handle font sizing
-? set header, footer height based on size on plot size
+x set header, footer height based on size on plot size
 
 
 Readability:
