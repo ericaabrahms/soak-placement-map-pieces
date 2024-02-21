@@ -72,10 +72,9 @@ def get_pixels_from_feet(distance_in_feet):
 def create_rectangle(drawer, text, width, height, color=black, bg=pink, gradient=None, font=get_font()):
     i = Image.new("RGB", (width, height), bg)
     drawer = ImageDraw.Draw(i)
-    # TODO: Font
     # TODO: add a border
     # TODO: Wrap text
-    drawer.multiline_text((5, 5), text, fill=color, font=font)
+    drawer.multiline_text((0, 0), text, fill=color, font=font)
 
     return i
 
@@ -89,17 +88,17 @@ def add_obj_to_image(image, rect, top_left):
 def determine_rectangle_placement():
     return (50, 50);
 
-def create_circle_with_number(number, diam):
+def create_circle_with_number(number, diam, font=8):
     # TODO FIGURE OUT TRANSPARENT BG
     i = Image.new("RGB", (diam, diam), COLORS["WHITE"])
     drawer = ImageDraw.Draw(i)
 
-    tl = math.floor((diam - SMALL_FONT_SIZE) / 2)
+    tl = math.floor((diam - font) / 2)
     # TODO: Font
     # TODO: add a border
     # TODO: Wrap text
     drawer.arc((0,0, diam, diam), 0, 360, fill=black, width=BORDER_WIDTH)
-    drawer.text((tl, tl), str(number), fill=black, font=get_font(8))
+    drawer.text((tl, tl), str(number), fill=black, font=get_font(font))
 
     return i
 
@@ -206,13 +205,16 @@ def gen_image_for_camp(camp: CampInfo):
         smaller_sixth = math.floor(depth_in_px / 6)
     HEADER_HEIGHT = math.floor(depth_in_px / 6)
 
+    smaller_sixth_font_size = smaller_sixth - 5
+    header_font_size = HEADER_HEIGHT - 5
+
     # SZ Header
     fg = black
     if camp.sound_zone_hard_preference == SoundZoneHardPreference.YES:
         fg = red
     add_obj_to_image(
         img,
-        create_rectangle(draw, camp.sound_zone, frontage_in_px, HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=get_font(10), color=fg),
+        create_rectangle(draw, camp.sound_zone, frontage_in_px, HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=get_font(header_font_size), color=fg),
         (0,0) # start at top left.
     )
 
@@ -220,7 +222,7 @@ def gen_image_for_camp(camp: CampInfo):
     wrapped_name = '\n'.join(textwrap.wrap(camp.name, width=12))
     add_obj_to_image(
         img,
-        create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), HEADER_HEIGHT, bg=get_interactivity_time_color(camp), font=get_font(16)),
+        create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), (2 * HEADER_HEIGHT), bg=get_interactivity_time_color(camp), font=get_font(math.floor(1.2 * smaller_sixth_font_size))),
         (smaller_sixth, HEADER_HEIGHT),
     )
 
@@ -261,7 +263,7 @@ def gen_image_for_camp(camp: CampInfo):
                 if position == BorderBarPosition.RIGHT:
                     x_position = frontage_in_px - smaller_sixth
 
-            in_progress = create_rectangle(draw, bar.text, bar_width, height, bg=bar.background_color, color=bar.text_color)
+            in_progress = create_rectangle(draw, bar.text, bar_width, height, bg=bar.background_color, color=bar.text_color, font=get_font(smaller_sixth_font_size))
             add_obj_to_image(
                 img,
                 in_progress.rotate(rotation, expand=1),
@@ -273,13 +275,13 @@ def gen_image_for_camp(camp: CampInfo):
     # (FRONTAGE)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.width), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(8)),
+        create_rectangle(draw, str(camp.width), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(smaller_sixth_font_size)),
         (smaller_sixth, img.height - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
     )
     # (DEPTH)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.height), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(8)).rotate(-90, expand=1),
+        create_rectangle(draw, str(camp.height), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(smaller_sixth_font_size)).rotate(-90, expand=1),
         (smaller_sixth, img.height - (2 * smaller_sixth + HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
@@ -310,7 +312,7 @@ def gen_image_for_camp(camp: CampInfo):
         # RV Circle
         add_obj_to_image(
             img,
-            create_circle_with_number(camp.rv_count, smaller_sixth),
+            create_circle_with_number(camp.rv_count, smaller_sixth, font=10),
             (frontage_in_px - (2 * smaller_sixth), depth_in_px - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
         )
 
