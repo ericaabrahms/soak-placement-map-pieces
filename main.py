@@ -49,6 +49,11 @@ food = "#b4a7d6"
 food_plus = "#9900ff"
 xxx = pink
 
+interactivity_morning = "#ffff00"
+interactivity_afternoon = "#f4cbcc"
+interactivity_night = "#a0c4e8"
+interactivity_support = "#b6d7a8"
+
 
 # # default vars for sample line
 # frontage = 60
@@ -174,6 +179,16 @@ def place_bars(bars: List[BorderBar]) -> Dict[BorderBarPosition, List[BorderBar]
         # if len(output[BorderBarPosition.LEFT]) < 2
     return output
 
+def get_interactivity_time_color(camp: CampInfo):
+    if 'morning' in camp.interactivity_time.lower():
+        return interactivity_morning
+    if 'afternoon' in camp.interactivity_time.lower():
+        return interactivity_afternoon
+    if 'night' in camp.interactivity_time.lower():
+        return interactivity_night
+    if 'support' in camp.interactivity_time.lower():
+        return interactivity_support
+    return white
 
 def gen_image_for_camp(camp: CampInfo):
     frontage_in_px = round(get_pixels_from_feet(camp.width))
@@ -195,7 +210,7 @@ def gen_image_for_camp(camp: CampInfo):
     wrapped_name = '\n'.join(textwrap.wrap(camp.name, width=12))
     add_obj_to_image(
         img,
-        create_rectangle(draw, wrapped_name, frontage_in_px - SIDE_HEIGHT *2, HEADER_HEIGHT, bg=COLORS["WHITE"], font=get_font(16)),
+        create_rectangle(draw, wrapped_name, frontage_in_px - SIDE_HEIGHT *2, HEADER_HEIGHT, bg=get_interactivity_time_color(camp), font=get_font(16)),
         (SIDE_HEIGHT, HEADER_HEIGHT),
     )
 
