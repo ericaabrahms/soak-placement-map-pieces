@@ -15,12 +15,12 @@ LARGE_FONT_SIZE = 20
 def get_font(size=SMALL_FONT_SIZE):
     return ImageFont.truetype(font='./RobotoMono-Regular.ttf', size=size)
 
-CIRCLE_HEIGHT = 25
+# smaller_sixth = 25
 BORDER_WIDTH = 2
-ICON_HEIGHT = 20
+# smaller_sixth = 20
 
-HEADER_HEIGHT = 25
-SIDE_HEIGHT = 15
+# HEADER_HEIGHT = 25
+# smaller_sixth = 15
 
 COLORS = {
     "SZ 1": "#6D9EEB",
@@ -94,7 +94,7 @@ def create_circle_with_number(number, diam):
     i = Image.new("RGB", (diam, diam), COLORS["WHITE"])
     drawer = ImageDraw.Draw(i)
 
-    tl = math.floor((CIRCLE_HEIGHT - SMALL_FONT_SIZE) / 2)
+    tl = math.floor((diam - SMALL_FONT_SIZE) / 2)
     # TODO: Font
     # TODO: add a border
     # TODO: Wrap text
@@ -200,6 +200,12 @@ def gen_image_for_camp(camp: CampInfo):
     draw = ImageDraw.Draw(img)
 
 
+    wider = camp.width > camp.height
+    smaller_sixth = math.floor(frontage_in_px / 6)
+    if wider:
+        smaller_sixth = math.floor(depth_in_px / 6)
+    HEADER_HEIGHT = math.floor(depth_in_px / 6)
+
     # SZ Header
     fg = black
     if camp.sound_zone_hard_preference == SoundZoneHardPreference.YES:
@@ -214,8 +220,8 @@ def gen_image_for_camp(camp: CampInfo):
     wrapped_name = '\n'.join(textwrap.wrap(camp.name, width=12))
     add_obj_to_image(
         img,
-        create_rectangle(draw, wrapped_name, frontage_in_px - SIDE_HEIGHT *2, HEADER_HEIGHT, bg=get_interactivity_time_color(camp), font=get_font(16)),
-        (SIDE_HEIGHT, HEADER_HEIGHT),
+        create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), HEADER_HEIGHT, bg=get_interactivity_time_color(camp), font=get_font(16)),
+        (smaller_sixth, HEADER_HEIGHT),
     )
 
     # Border Bars
@@ -233,7 +239,7 @@ def gen_image_for_camp(camp: CampInfo):
             height = HEADER_HEIGHT
         else:
             width = depth_in_px - (HEADER_HEIGHT*2)
-            height = SIDE_HEIGHT
+            height = smaller_sixth
 
         bar_sections = len(bars)
         bar_width = math.floor(width/bar_sections)
@@ -253,7 +259,7 @@ def gen_image_for_camp(camp: CampInfo):
                 y_pos = HEADER_HEIGHT + bar_offset
                 x_position = 0
                 if position == BorderBarPosition.RIGHT:
-                    x_position = frontage_in_px - SIDE_HEIGHT
+                    x_position = frontage_in_px - smaller_sixth
 
             in_progress = create_rectangle(draw, bar.text, bar_width, height, bg=bar.background_color, color=bar.text_color)
             add_obj_to_image(
@@ -267,36 +273,36 @@ def gen_image_for_camp(camp: CampInfo):
     # (FRONTAGE)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.width), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=black, font=get_font(8)),
-        (SIDE_HEIGHT, img.height - (2 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+        create_rectangle(draw, str(camp.width), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(8)),
+        (smaller_sixth, img.height - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
     )
     # (DEPTH)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.height), HEADER_HEIGHT, HEADER_HEIGHT, bg=COLORS["WHITE"], color=black, font=get_font(8)).rotate(-90, expand=1),
-        (SIDE_HEIGHT, img.height - (3 * HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+        create_rectangle(draw, str(camp.height), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(8)).rotate(-90, expand=1),
+        (smaller_sixth, img.height - (2 * smaller_sixth + HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
     # COFFEE
     if camp.coffee:
         add_obj_to_image(
             img,
-            Image.open('./assets/coffee.jpg').resize((ICON_HEIGHT, ICON_HEIGHT)),
-            (frontage_in_px - (SIDE_HEIGHT + 2 * CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+            Image.open('./assets/coffee.jpg').resize((smaller_sixth, smaller_sixth)),
+            (frontage_in_px - (3 * smaller_sixth), depth_in_px - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
         )
     # TEA
     if camp.tea:
         add_obj_to_image(
             img,
-            Image.open('./assets/tea.jpg').resize((ICON_HEIGHT, ICON_HEIGHT)),
-            (frontage_in_px - (SIDE_HEIGHT + 2 * CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+            Image.open('./assets/tea.jpg').resize((smaller_sixth, smaller_sixth)),
+            (frontage_in_px - (3 * smaller_sixth), depth_in_px - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
         )
 
     if camp.sound_size != SoundSize.NONE:
         add_obj_to_image(
             img,
-            Image.open(f'./assets/sound_{camp.sound_size.value}.jpg').resize((ICON_HEIGHT, ICON_HEIGHT)),
-            (frontage_in_px - (SIDE_HEIGHT + 2 * CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT + ICON_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+            Image.open(f'./assets/sound_{camp.sound_size.value}.jpg').resize((smaller_sixth, smaller_sixth)),
+            (frontage_in_px - (3 * smaller_sixth), depth_in_px - (HEADER_HEIGHT + (2 * smaller_sixth))) # start at bottom left, offset by how tall the rectangle is.
         )
 
     # RV Circle
@@ -304,8 +310,8 @@ def gen_image_for_camp(camp: CampInfo):
         # RV Circle
         add_obj_to_image(
             img,
-            create_circle_with_number(camp.rv_count, CIRCLE_HEIGHT),
-            (frontage_in_px - (SIDE_HEIGHT + CIRCLE_HEIGHT), img.height - (HEADER_HEIGHT + CIRCLE_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
+            create_circle_with_number(camp.rv_count, smaller_sixth),
+            (frontage_in_px - (2 * smaller_sixth), depth_in_px - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
         )
 
     print("Camp: ", camp)
