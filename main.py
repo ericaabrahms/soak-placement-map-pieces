@@ -219,10 +219,14 @@ def gen_image_for_camp(camp: CampInfo):
     )
 
     # Camp Name
-    wrapped_name = '\n'.join(textwrap.wrap(camp.name, width=12))
+    def get_camp_name_font_size(name: str, width: int):
+        return {'size': 10, 'break': 12}
+
+
+    wrapped_name = '\n'.join(textwrap.wrap(camp.name, width=get_camp_name_font_size(camp.name, math.floor(frontage_in_px * 4 / 6))["break"]))
     add_obj_to_image(
         img,
-        create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), (2 * HEADER_HEIGHT), bg=get_interactivity_time_color(camp), font=get_font(math.floor(1.2 * smaller_sixth_font_size))),
+        create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), (2 * HEADER_HEIGHT), bg=get_interactivity_time_color(camp), font=get_font(get_camp_name_font_size(camp.name, math.floor(frontage_in_px * 4 / 6))["size"])),
         (smaller_sixth, HEADER_HEIGHT),
     )
 
