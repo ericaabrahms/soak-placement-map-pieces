@@ -190,6 +190,21 @@ def get_interactivity_time_color(camp: CampInfo):
         return interactivity_support
     return white
 
+def get_font_size_for_area(text: str, width: int, height: int):
+    ratio = math.floor(width/len(text))
+    size = 10
+    wrap = len(text)
+    if ratio > 6:
+        size = math.floor(ratio * 1.8)
+        if size > (math.floor(height / 2)):
+            size = math.floor(height / 2)
+    elif ratio > 4:
+        print(text)
+        size = math.floor(ratio * .8)
+        wrap = math.floor(len(text) /2)
+
+    return {'size': size, 'break': wrap}
+
 def gen_image_for_camp(camp: CampInfo):
     frontage_in_px = math.floor(get_pixels_from_feet(camp.width))
     depth_in_px = math.floor(get_pixels_from_feet(camp.height))
@@ -219,14 +234,15 @@ def gen_image_for_camp(camp: CampInfo):
     )
 
     # Camp Name
-    def get_camp_name_font_size(name: str, width: int):
-        return {'size': 10, 'break': 12}
 
+    sw = get_font_size_for_area(camp.name, math.floor(frontage_in_px * 4 / 6), math.floor(depth_in_px * 4 / 6))
+    camp_name_size = sw["size"]
+    camp_name_wrap = sw["break"]
 
-    wrapped_name = '\n'.join(textwrap.wrap(camp.name, width=get_camp_name_font_size(camp.name, math.floor(frontage_in_px * 4 / 6))["break"]))
+    wrapped_name = '\n'.join(textwrap.wrap(camp.name, width=camp_name_wrap))
     add_obj_to_image(
         img,
-        create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), (2 * HEADER_HEIGHT), bg=get_interactivity_time_color(camp), font=get_font(get_camp_name_font_size(camp.name, math.floor(frontage_in_px * 4 / 6))["size"])),
+        create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), (2 * HEADER_HEIGHT), bg=get_interactivity_time_color(camp), font=get_font(camp_name_size)),
         (smaller_sixth, HEADER_HEIGHT),
     )
 
@@ -335,7 +351,7 @@ if __name__ == '__main__':
             substring_match = sys.argv[1]
             if substring_match.lower() not in camp.name.lower():
                 continue
-        if camp.height < 30 or camp.width < 30:
+        if camp.height < 20 or camp.width < 20:
             print(f"Skipping {camp} because their frontage is too small for now.")
             continue
 
