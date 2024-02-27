@@ -194,16 +194,69 @@ def get_font_size_for_area(text: str, width: int, height: int):
     ratio = math.floor(width/len(text))
     size = 10
     wrap = len(text)
-    if ratio > 6:
+    if ratio > 5:
+        # print(f'>=5 : {ratio} {text}')
+
         size = math.floor(ratio * 1.8)
         if size > (math.floor(height / 2)):
             size = math.floor(height / 2)
-    elif ratio > 4:
-        print(text)
-        size = math.floor(ratio * .8)
-        wrap = math.floor(len(text) /2)
+    elif ratio >= 4:
+        # print(f'>=4 : {ratio} {text}')
 
+        size = math.floor(ratio * 3)
+        if size > (math.floor(height / 2)):
+            size = math.floor(height / 2)
+        wrap = math.floor(len(text) * 3 / 5)
+    elif ratio >= 3:
+        print(f'>=3 : {ratio} {text}')
+
+        size = math.floor(ratio * 3)
+        if size > (math.floor(height / 2)):
+            size = math.floor(height / 2)
+        wrap = math.floor(len(text) * 2 / 3)
+    else:
+        print(f'ELSE : {ratio} {text}')
+        size = math.floor(ratio * 2)
+        if size > (math.floor(height / 2)):
+            size = math.floor(height / 2)
+        wrap = math.floor(len(text) / 2)
     return {'size': size, 'break': wrap}
+
+def get_alias(camp: CampInfo):
+    name = camp.name
+    lowercase_name = name.lower()
+    if 'astro shack' in lowercase_name:
+        return 'Astro Shack'
+    if 'bowlovfarts' in lowercase_name:
+        return 'Bowlovfarts'
+    if 'black rock observatory' in lowercase_name:
+        return 'Observatory'
+    if 'black rock center for unlearning' in lowercase_name:
+        return 'Center for Unlearning'
+    if 'brother monk' in lowercase_name and 'temple praya' in lowercase_name:
+        return 'Brother Monk\'s'
+    if 'community conch' in lowercase_name:
+        return 'Cmty Conch ASC'
+    if 'clusterfuck' in lowercase_name:
+        return 'Clusterfuck'
+    if 'cbgb' in lowercase_name:
+        return 'CBGB'
+    if 'costco' in lowercase_name:
+        return 'Costco'
+    if 'dogs n recreation' in lowercase_name:
+        return 'Dogs n Rec'
+    if 'super happy invincible titanic' in lowercase_name:
+        return 'SHIT'
+    if 'teenie weenie art tent' in lowercase_name:
+        return 'TWAT'
+    if 'you are here' in lowercase_name:
+        return 'You Are Here'
+    if 'cult of the peach' in lowercase_name:
+        return 'Cult of the Peach'
+
+
+
+    return name
 
 def gen_image_for_camp(camp: CampInfo):
     frontage_in_px = math.floor(get_pixels_from_feet(camp.width))
@@ -234,12 +287,12 @@ def gen_image_for_camp(camp: CampInfo):
     )
 
     # Camp Name
-
-    sw = get_font_size_for_area(camp.name, math.floor(frontage_in_px * 4 / 6), math.floor(depth_in_px * 4 / 6))
+    camp_name = get_alias(camp)
+    sw = get_font_size_for_area(camp_name, math.floor(frontage_in_px * 4 / 6), math.floor(depth_in_px * 4 / 6))
     camp_name_size = sw["size"]
     camp_name_wrap = sw["break"]
 
-    wrapped_name = '\n'.join(textwrap.wrap(camp.name, width=camp_name_wrap))
+    wrapped_name = '\n'.join(textwrap.wrap(camp_name, width=camp_name_wrap))
     add_obj_to_image(
         img,
         create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), (2 * HEADER_HEIGHT), bg=get_interactivity_time_color(camp), font=get_font(camp_name_size)),
@@ -336,7 +389,7 @@ def gen_image_for_camp(camp: CampInfo):
             (frontage_in_px - (2 * smaller_sixth), depth_in_px - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
         )
 
-    print("Camp: ", camp)
+    # print("Camp: ", camp)
 
     return img
 
