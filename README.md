@@ -38,3 +38,5 @@ Images are saved to the 'images' directory.
 ## Risky Choices
 - The camp names are mapped to a column with no heading.
 - Property names are derived from column headings.  There are duplicates of these in the csv.  The last column trumps (e.g. If Col A and Col Z are named 'Coffee', the data from Col Z will be used.)
+- Some camp names are long relative to the amount of space available on the map piece.  There is special case handling to create an alias for the camp name
+
