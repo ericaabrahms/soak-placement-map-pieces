@@ -15,28 +15,21 @@ LARGE_FONT_SIZE = 20
 def get_font(size=SMALL_FONT_SIZE):
     return ImageFont.truetype(font='./RobotoMono-Regular.ttf', size=size)
 
-# smaller_sixth = 25
 BORDER_WIDTH = 2
-# smaller_sixth = 20
 
-# HEADER_HEIGHT = 25
-# smaller_sixth = 15
-
+#  COLOR VARS
 COLORS = {
     "SZ 1": "#6D9EEB",
     "SZ 2": "#C9DAF8",
     "SZ 3": "#00FFFF",
     "#N/A": "#00FF00", # doesn't have a sound zone set (e.g. Unicorn Ranch)
-
-    "BLACK": "#000000",
-    "WHITE": "#FFFFFF",
-    "PINK": "#FF00FF",
-
 }
 
 white='#FFFFFF'
 black='#000000'
 pink='#ff00ff'
+red = "#FF0000"
+grey = '#DDDDDD'
 tree_green = '#38761d'
 uneven_ground_brown = '#b45f06'
 kids_yellow = '#fff2cc'
@@ -48,18 +41,11 @@ bar = black
 food = "#b4a7d6"
 food_plus = "#9900ff"
 xxx = pink
-red = "#FF0000"
-grey = '#DDDDDD'
 
 interactivity_morning = "#ffff00"
 interactivity_afternoon = "#f4cbcc"
 interactivity_night = "#a0c4e8"
 interactivity_support = "#b6d7a8"
-
-
-# # default vars for sample line
-# frontage = 60
-# depth = 120
 
 class BorderBarPosition(Enum):
     LEFT = auto()
@@ -91,7 +77,7 @@ def determine_rectangle_placement():
 
 def create_circle_with_number(number, diam, font=8):
     # TODO FIGURE OUT TRANSPARENT BG
-    i = Image.new("RGB", (diam, diam), COLORS["WHITE"])
+    i = Image.new("RGB", (diam, diam), white)
     drawer = ImageDraw.Draw(i)
 
     tl = math.floor((diam - font) / 2)
@@ -267,7 +253,7 @@ def gen_image_for_camp(camp: CampInfo):
     frontage_in_px = math.floor(get_pixels_from_feet(camp.width))
     depth_in_px = math.floor(get_pixels_from_feet(camp.height))
 
-    img = Image.new("RGB", (frontage_in_px, depth_in_px), COLORS["WHITE"])
+    img = Image.new("RGB", (frontage_in_px, depth_in_px), white)
 
     draw = ImageDraw.Draw(img)
 
@@ -370,13 +356,13 @@ def gen_image_for_camp(camp: CampInfo):
         dim_font_size=math.floor(.6 * smaller_sixth_font_size)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.width), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(dim_font_size)),
+        create_rectangle(draw, str(camp.width), smaller_sixth, smaller_sixth, bg=white, color=black, font=get_font(dim_font_size)),
         (smaller_sixth, img.height - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
     )
     # (DEPTH)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.height), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(dim_font_size)).rotate(-90, expand=1),
+        create_rectangle(draw, str(camp.height), smaller_sixth, smaller_sixth, bg=white, color=black, font=get_font(dim_font_size)).rotate(-90, expand=1),
         (smaller_sixth, img.height - (2 * smaller_sixth + HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
