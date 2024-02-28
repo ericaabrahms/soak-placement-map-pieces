@@ -95,9 +95,6 @@ def create_circle_with_number(number, diam, font=8):
     drawer = ImageDraw.Draw(i)
 
     tl = math.floor((diam - font) / 2)
-    # TODO: Font
-    # TODO: add a border
-    # TODO: Wrap text
     drawer.arc((0,0, diam, diam), 0, 360, fill=black, width=BORDER_WIDTH)
     drawer.text((tl, tl), str(number), fill=black, font=get_font(font))
 
@@ -202,27 +199,21 @@ def get_font_size_for_area(text: str, width: int, height: int):
         if size > (math.floor(height / 2)):
             size = math.floor(height / 2)
     elif ratio >= 4:
-        # print(f'>=4 : {ratio} {text}')
-
         size = math.floor(ratio * 3)
         if size > (math.floor(height / 2)):
             size = math.floor(height / 2)
         wrap = math.floor(len(text) * 3 / 5)
     elif ratio >= 3:
-        print(f'>=3 : {ratio} {text}')
-
         size = math.floor(ratio * 3)
         if size > (math.floor(height / 2)):
             size = math.floor(height / 2)
         wrap = math.floor(len(text) * 2 / 3)
     elif ratio >= 2:
-        print(f'>=2 : {ratio} {text}')
         size = math.floor(ratio * 2)
         if size > (math.floor(height / 2)):
             size = math.floor(height / 2)
         wrap = math.floor(len(text) * 2 / 3)
     else:
-        print(f'ELSE : {ratio} {text}')
         size = math.floor(ratio * 2)
         if size > (math.floor(height / 2)):
             size = math.floor(height / 2)
@@ -232,40 +223,47 @@ def get_font_size_for_area(text: str, width: int, height: int):
 def get_alias(camp: CampInfo):
     name = camp.name
     lowercase_name = name.lower()
-    if 'astro shack' in lowercase_name:
-        return 'Astro Shack'
-    if 'bowlovfarts' in lowercase_name:
-        return 'Bowlovfarts'
-    if 'black rock observatory' in lowercase_name:
-        return 'Observatory'
-    if 'black rock center for unlearning' in lowercase_name:
-        return 'Center for Unlearning'
-    if 'brother monk' in lowercase_name and 'temple praya' in lowercase_name:
-        return 'Brother Monk\'s'
-    if 'community conch' in lowercase_name:
-        return 'Cmty Conch ASC'
-    if 'clusterfuck' in lowercase_name:
-        return 'Clusterfuck'
-    if 'cbgb' in lowercase_name:
-        return 'CBGB'
-    if 'costco' in lowercase_name:
-        return 'Costco'
-    if 'dogs n recreation' in lowercase_name:
-        return 'Dogs n Rec'
-    if 'super happy invincible titanic' in lowercase_name:
-        return 'SHIT'
-    if 'teenie weenie art tent' in lowercase_name:
-        return 'TWAT'
-    if 'you are here' in lowercase_name:
-        return 'You Are Here'
-    if 'cult of the peach' in lowercase_name:
-        return 'Cult of the Peach'
+    replacements = {
+        'astro shack': 'Astro Shack',
+        'bowlovfarts': 'Bowlovfarts',
+        'black rock observatory': 'BR Obsv',
+        'black rock center for unlearning': 'Center for Unlearning',
+        'brother monk\'s temple praya': 'Brother Monk\'s',
+        'community conch': 'Cmty Conch ASC',
+        'clusterfuck': 'Clusterfuck',
+        'cbgb': 'CBGB',
+        'costco': 'Costco',
+        'dogs n recreation': 'Dogs n Rec',
+        'super happy invincible titanic': 'SHIT',
+        'teenie weenie art tent': 'TWAT',
+        'you are here': 'U R Here',
+        'cult of the peach': 'Cult of the Peach',
+        'absinthe minded': 'Absinthe',
+        'camp chai': 'Cp Chai',
+        'cracked pot': 'Crkd Pot',
+        'divisional spaces': 'Divis. Spaces',
+        'elation station': 'Elat\'n Stn.',
+        'flower bower': 'Flower Bower  ',
+        'hedgehog hegemony': 'HHH',
+        'smash that': 'I Smsh Tht',
+        'krampus': 'krampus',
+        'polyjamorous': 'Polyjamorous',
+        'principles fantastica': 'P\'s Fantastica',
+        'second rodeo': 'Second Rodeo    ',
+        'adventurer\'s respite': 'Adventurer\'s Respite',
+        'garden of otherworldly delights': 'Gd Other- worldly Del',
+        'secret of mems': 'Secret of Mems',
+        'tiny tramp': 'Tiny Tramp Espr',
+        'unityhaven': 'Unity Haven   '
+    }
 
-
-
+    for substr, replacement in replacements.items():
+        if substr in lowercase_name:
+            return replacement
     return name
 
 def gen_image_for_camp(camp: CampInfo):
+
     frontage_in_px = math.floor(get_pixels_from_feet(camp.width))
     depth_in_px = math.floor(get_pixels_from_feet(camp.height))
 
@@ -416,8 +414,6 @@ def gen_image_for_camp(camp: CampInfo):
     # print("Camp: ", camp)
 
     return img
-
-
 
 if __name__ == '__main__':
     import sys
