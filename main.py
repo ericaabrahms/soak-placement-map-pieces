@@ -49,6 +49,7 @@ food = "#b4a7d6"
 food_plus = "#9900ff"
 xxx = pink
 red = "#FF0000"
+grey = '#DDDDDD'
 
 interactivity_morning = "#ffff00"
 interactivity_afternoon = "#f4cbcc"
@@ -214,6 +215,12 @@ def get_font_size_for_area(text: str, width: int, height: int):
         if size > (math.floor(height / 2)):
             size = math.floor(height / 2)
         wrap = math.floor(len(text) * 2 / 3)
+    elif ratio >= 2:
+        print(f'>=2 : {ratio} {text}')
+        size = math.floor(ratio * 2)
+        if size > (math.floor(height / 2)):
+            size = math.floor(height / 2)
+        wrap = math.floor(len(text) * 2 / 3)
     else:
         print(f'ELSE : {ratio} {text}')
         size = math.floor(ratio * 2)
@@ -274,7 +281,17 @@ def gen_image_for_camp(camp: CampInfo):
     HEADER_HEIGHT = math.floor(depth_in_px / 6)
 
     smaller_sixth_font_size = smaller_sixth - 5
-    header_font_size = HEADER_HEIGHT - 5
+
+    # Neighborhood Preference
+    neighborhood_preference = ''
+    for preference in camp.neighborhood_preference:
+        neighborhood_preference += f'{preference} '
+    header_font_size = get_font_size_for_area(neighborhood_preference, math.floor(frontage_in_px/2), HEADER_HEIGHT)["size"]
+    add_obj_to_image(
+        img,
+        create_rectangle(draw, neighborhood_preference, math.floor(frontage_in_px/2), HEADER_HEIGHT, bg=grey, font=get_font(header_font_size), color=black),
+        (0,0) # start at top left.
+    )
 
     # SZ Header
     fg = black
@@ -282,8 +299,8 @@ def gen_image_for_camp(camp: CampInfo):
         fg = red
     add_obj_to_image(
         img,
-        create_rectangle(draw, camp.sound_zone, frontage_in_px, HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=get_font(header_font_size), color=fg),
-        (0,0) # start at top left.
+        create_rectangle(draw, camp.sound_zone, math.floor(frontage_in_px/2), HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=get_font(header_font_size), color=fg),
+        (math.floor(frontage_in_px/2), 0) # start at top center.
     )
 
     # Camp Name
@@ -336,7 +353,11 @@ def gen_image_for_camp(camp: CampInfo):
                 if position == BorderBarPosition.RIGHT:
                     x_position = frontage_in_px - smaller_sixth
 
-            in_progress = create_rectangle(draw, bar.text, bar_width, height, bg=bar.background_color, color=bar.text_color, font=get_font(smaller_sixth_font_size))
+            bar_font = smaller_sixth_font_size
+            if bar_font > 12:
+                bar_font = 12
+
+            in_progress = create_rectangle(draw, bar.text, bar_width, height, bg=bar.background_color, color=bar.text_color, font=get_font(bar_font))
             add_obj_to_image(
                 img,
                 in_progress.rotate(rotation, expand=1),
@@ -346,15 +367,18 @@ def gen_image_for_camp(camp: CampInfo):
 
     # DIMS
     # (FRONTAGE)
+    dim_font_size = smaller_sixth_font_size
+    if camp.width >= 100 or camp.height >= 100:
+        dim_font_size=math.floor(.6 * smaller_sixth_font_size)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.width), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(smaller_sixth_font_size)),
+        create_rectangle(draw, str(camp.width), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(dim_font_size)),
         (smaller_sixth, img.height - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
     )
     # (DEPTH)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.height), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(smaller_sixth_font_size)).rotate(-90, expand=1),
+        create_rectangle(draw, str(camp.height), smaller_sixth, smaller_sixth, bg=COLORS["WHITE"], color=black, font=get_font(dim_font_size)).rotate(-90, expand=1),
         (smaller_sixth, img.height - (2 * smaller_sixth + HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
