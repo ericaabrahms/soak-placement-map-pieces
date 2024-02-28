@@ -17,7 +17,7 @@ def get_font(size=SMALL_FONT_SIZE):
 
 BORDER_WIDTH = 2
 
-#  COLOR VARS
+#  COLOR V
 COLORS = {
     "SZ 1": "#6D9EEB",
     "SZ 2": "#C9DAF8",
@@ -47,33 +47,19 @@ interactivity_afternoon = "#f4cbcc"
 interactivity_night = "#a0c4e8"
 interactivity_support = "#b6d7a8"
 
-class BorderBarPosition(Enum):
-    LEFT = auto()
-    RIGHT = auto()
-    BOTTOM = auto()
-    NONE = auto()
-
+# BASIC HELPERS
 def get_pixels_from_feet(distance_in_feet):
   return distance_in_feet * PIXELS_PER_FOOT
 
-def create_rectangle(drawer, text, width, height, color=black, bg=pink, gradient=None, font=get_font()):
+def create_rectangle(drawer, text, width, height, color=black, bg=pink, font=12):
     i = Image.new("RGB", (width, height), bg)
     drawer = ImageDraw.Draw(i)
-    # TODO: add a border
-    # TODO: Wrap text
-    drawer.multiline_text((0, 0), text, fill=color, font=font)
+    drawer.multiline_text((0, 0), text, fill=color, font=get_font(font))
 
     return i
 
-def rotate(thing_to_rotate, rotation = 0):
-    # expand means "make the image bigger if necessary to accomodate"
-    return thing_to_rotate.rotate(rotation, expand=1)
-
 def add_obj_to_image(image, rect, top_left):
     image.paste(rect, box=top_left)
-
-def determine_rectangle_placement():
-    return (50, 50);
 
 def create_circle_with_number(number, diam, font=8):
     # TODO FIGURE OUT TRANSPARENT BG
@@ -86,6 +72,12 @@ def create_circle_with_number(number, diam, font=8):
 
     return i
 
+# BORDER BARS
+class BorderBarPosition(Enum):
+    LEFT = auto()
+    RIGHT = auto()
+    BOTTOM = auto()
+    NONE = auto()
 class BorderBar(object):
     "Text to annotate the attributes of a camp. It decorates the border of the card."
 
@@ -97,7 +89,6 @@ class BorderBar(object):
 
     def __repr__(self):
         return f'<BorderBar {self.text}>'
-
 
 def generate_border_bars_for_camp(camp: CampInfo) -> List[BorderBar]:
     bars = []
@@ -163,6 +154,7 @@ def place_bars(bars: List[BorderBar]) -> Dict[BorderBarPosition, List[BorderBar]
         # if len(output[BorderBarPosition.LEFT]) < 2
     return output
 
+# SHENNANIGANS
 def get_interactivity_time_color(camp: CampInfo):
     if 'morning' in camp.interactivity_time.lower():
         return interactivity_morning
@@ -214,7 +206,7 @@ def get_alias(camp: CampInfo):
         'bowlovfarts': 'Bowlovfarts',
         'black rock observatory': 'BR Obsv',
         'black rock center for unlearning': 'Center for Unlearning',
-        'brother monk\'s temple praya': 'Brother Monk\'s',
+        'brother monk': 'Brother Monk\'s',
         'community conch': 'Cmty Conch ASC',
         'clusterfuck': 'Clusterfuck',
         'cbgb': 'CBGB',
@@ -248,6 +240,7 @@ def get_alias(camp: CampInfo):
             return replacement
     return name
 
+# MAKE THE IMAGE FOR CAMPS
 def gen_image_for_camp(camp: CampInfo):
 
     frontage_in_px = math.floor(get_pixels_from_feet(camp.width))
@@ -273,7 +266,7 @@ def gen_image_for_camp(camp: CampInfo):
     header_font_size = get_font_size_for_area(neighborhood_preference, math.floor(frontage_in_px/2), HEADER_HEIGHT)["size"]
     add_obj_to_image(
         img,
-        create_rectangle(draw, neighborhood_preference, math.floor(frontage_in_px/2), HEADER_HEIGHT, bg=grey, font=get_font(header_font_size), color=black),
+        create_rectangle(draw, neighborhood_preference, math.floor(frontage_in_px/2), HEADER_HEIGHT, bg=grey, font=header_font_size, color=black),
         (0,0) # start at top left.
     )
 
@@ -283,7 +276,7 @@ def gen_image_for_camp(camp: CampInfo):
         fg = red
     add_obj_to_image(
         img,
-        create_rectangle(draw, camp.sound_zone, math.floor(frontage_in_px/2), HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=get_font(header_font_size), color=fg),
+        create_rectangle(draw, camp.sound_zone, math.floor(frontage_in_px/2), HEADER_HEIGHT, bg=COLORS[camp.sound_zone], font=header_font_size, color=fg),
         (math.floor(frontage_in_px/2), 0) # start at top center.
     )
 
@@ -296,7 +289,7 @@ def gen_image_for_camp(camp: CampInfo):
     wrapped_name = '\n'.join(textwrap.wrap(camp_name, width=camp_name_wrap))
     add_obj_to_image(
         img,
-        create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), (2 * HEADER_HEIGHT), bg=get_interactivity_time_color(camp), font=get_font(camp_name_size)),
+        create_rectangle(draw, wrapped_name, frontage_in_px - (2 * smaller_sixth), (2 * HEADER_HEIGHT), bg=get_interactivity_time_color(camp), font=camp_name_size),
         (smaller_sixth, HEADER_HEIGHT),
     )
 
@@ -341,7 +334,7 @@ def gen_image_for_camp(camp: CampInfo):
             if bar_font > 12:
                 bar_font = 12
 
-            in_progress = create_rectangle(draw, bar.text, bar_width, height, bg=bar.background_color, color=bar.text_color, font=get_font(bar_font))
+            in_progress = create_rectangle(draw, bar.text, bar_width, height, bg=bar.background_color, color=bar.text_color, font=bar_font)
             add_obj_to_image(
                 img,
                 in_progress.rotate(rotation, expand=1),
@@ -356,13 +349,13 @@ def gen_image_for_camp(camp: CampInfo):
         dim_font_size=math.floor(.6 * smaller_sixth_font_size)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.width), smaller_sixth, smaller_sixth, bg=white, color=black, font=get_font(dim_font_size)),
+        create_rectangle(draw, str(camp.width), smaller_sixth, smaller_sixth, bg=white, color=black, font=dim_font_size),
         (smaller_sixth, img.height - (HEADER_HEIGHT + smaller_sixth)) # start at bottom left, offset by how tall the rectangle is.
     )
     # (DEPTH)
     add_obj_to_image(
         img,
-        create_rectangle(draw, str(camp.height), smaller_sixth, smaller_sixth, bg=white, color=black, font=get_font(dim_font_size)).rotate(-90, expand=1),
+        create_rectangle(draw, str(camp.height), smaller_sixth, smaller_sixth, bg=white, color=black, font=dim_font_size ).rotate(-90, expand=1),
         (smaller_sixth, img.height - (2 * smaller_sixth + HEADER_HEIGHT)) # start at bottom left, offset by how tall the rectangle is.
     )
 
@@ -410,6 +403,7 @@ if __name__ == '__main__':
             substring_match = sys.argv[1]
             if substring_match.lower() not in camp.name.lower():
                 continue
+        # TODO handle tiny camps
         if camp.height < 20 or camp.width < 20:
             print(f"Skipping {camp} because their frontage is too small for now.")
             continue
@@ -423,6 +417,3 @@ if __name__ == '__main__':
         # img.show()
         with open(f'images/{camp.name.replace(" ", "_").lower()}.jpg', 'w') as f:
             img.save(f, subsampling=0, quality=100)
-
-
-    print([x for x in seen if x[0] >= 6])
