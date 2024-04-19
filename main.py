@@ -11,9 +11,15 @@ import textwrap
 PIXELS_PER_FOOT = 2.4
 SMALL_FONT_SIZE = 6
 LARGE_FONT_SIZE = 20
+
+DEFAULT_FONT = './RobotoMono-Regular.ttf'
+FANCY_FONT = './Eilis-Regular.ttf'
 # System dependent. There is a default if we don't specify any font thing.
-def get_font(size=SMALL_FONT_SIZE):
-    return ImageFont.truetype(font='./RobotoMono-Regular.ttf', size=size)
+def get_font(size=SMALL_FONT_SIZE, font_name=None):
+    font=DEFAULT_FONT
+    if font_name is not None: 
+        font = font_name
+    return ImageFont.truetype(font=font, size=size)
 
 BORDER_WIDTH = 2
 
@@ -51,10 +57,10 @@ interactivity_support = "#b6d7a8"
 def get_pixels_from_feet(distance_in_feet):
   return distance_in_feet * PIXELS_PER_FOOT
 
-def create_rectangle(drawer, text, width, height, color=black, bg=pink, font=12):
+def create_rectangle(drawer, text, width, height, color=black, bg=pink, font=12, align='left', font_name=None):
     i = Image.new("RGB", (width, height), bg)
     drawer = ImageDraw.Draw(i)
-    drawer.multiline_text((0, 0), text, fill=color, font=get_font(font))
+    drawer.multiline_text((width/2, height/2), text, fill=color, font=get_font(font, font_name), anchor='mm', align=align)
 
     return i
 
@@ -240,6 +246,47 @@ def get_alias(camp: CampInfo):
             return replacement
     return name
 
+
+def gen_sign_for_camp(camp: CampInfo):
+
+    # size of camp sign png
+    landscape_width_in_px = 3301
+    landscape_height_in_px = 2551
+
+    img = Image.new("RGB", (landscape_width_in_px, landscape_height_in_px), white)
+    draw = ImageDraw.Draw(img)
+
+    HEADER_HEIGHT = 50
+    smaller_sixth = 200
+    frontage_in_px = 100
+    depth_in_px = 100
+
+    # BG Image
+    add_obj_to_image(
+        img,
+        Image.open('./sign_assets/1-Sign-Blank.png').resize((landscape_width_in_px, landscape_height_in_px)),
+        (0, 0) # start at bottom left, offset by how tall the rectangle is.
+    )
+
+    def get_sign_font_size(camp): 
+        return
+        # Camp Name
+    sw = get_font_size_for_area(camp.name, 1970, 890)
+    print(sw)
+    camp_name_size = sw["size"]
+    camp_name_wrap = sw["break"]
+
+    wrapped_name = '\n'.join(textwrap.wrap(camp.name, camp_name_wrap))
+    add_obj_to_image(
+        img,
+        create_rectangle(draw, wrapped_name, 1970, 890, bg=black, font=camp_name_size, color=white, align='center', font_name=FANCY_FONT),
+        (625, 110),
+    )
+
+    
+
+    return img
+
 # MAKE THE IMAGE FOR CAMPS
 def gen_image_for_camp(camp: CampInfo):
 
@@ -398,22 +445,38 @@ if __name__ == '__main__':
     import sys
     camps = read_csv()
     seen = []
-    for i, camp in enumerate(camps):
-        if len(sys.argv) > 1:
-            substring_match = sys.argv[1]
-            if substring_match.lower() not in camp.name.lower():
-                continue
-        # TODO handle tiny camps
-        if camp.height < 20 or camp.width < 20:
-            print(f"Skipping {camp} because their frontage is too small for now.")
-            continue
 
-        bbar = generate_border_bars_for_camp(camp)
-        count = len(bbar)
-        seen.append((count, camp, bbar))
-        # if i == 3:
-        #     sys.exit()
-        img = gen_image_for_camp(camp)
-        # img.show()
-        with open(f'images/{camp.name.replace(" ", "_").lower()}.jpg', 'w') as f:
-            img.save(f, subsampling=0, quality=100)
+    for i, camp in enumerate(camps):
+        if len(sys.argv) > 1 and sys.argv[1] in 'signs': 
+
+            if len(sys.argv) > 2:
+                substring_match = sys.argv[2]
+                if substring_match.lower() not in camp.name.lower():
+                    continue
+
+
+            print('making signs')
+            img = gen_sign_for_camp(camp)
+            with open(f'sign_images/{camp.name.replace(" ", "_").lower()}_sign.jpg', 'w') as f:
+                img.save(f, subsampling=0, quality=100)
+
+
+        else:
+            if len(sys.argv) > 1:
+                substring_match = sys.argv[1]
+                if substring_match.lower() not in camp.name.lower():
+                    continue
+            # TODO handle tiny camps
+            if camp.height < 20 or camp.width < 20:
+                print(f"Skipping {camp} because their frontage is too small for now.")
+                continue
+
+            bbar = generate_border_bars_for_camp(camp)
+            count = len(bbar)
+            seen.append((count, camp, bbar))
+            # if i == 3:
+            #     sys.exit()
+            img = gen_image_for_camp(camp)
+            # img.show()
+            with open(f'images/{camp.name.replace(" ", "_").lower()}.jpg', 'w') as f:
+                img.save(f, subsampling=0, quality=100)
