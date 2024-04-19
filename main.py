@@ -252,6 +252,8 @@ def gen_sign_for_camp(camp: CampInfo):
     # size of camp sign png
     landscape_width_in_px = 3301
     landscape_height_in_px = 2551
+    SIGN_TEXT_HEIGHT = 880
+    SIGN_TEXT_WIDTH = 1970
 
     img = Image.new("RGB", (landscape_width_in_px, landscape_height_in_px), white)
     draw = ImageDraw.Draw(img)
@@ -269,18 +271,51 @@ def gen_sign_for_camp(camp: CampInfo):
     )
 
     def get_sign_font_size(camp): 
-        return
-        # Camp Name
-    sw = get_font_size_for_area(camp.name, 1970, 890)
-    print(sw)
+        text = camp.name
+        height = SIGN_TEXT_HEIGHT
+        width = SIGN_TEXT_WIDTH
+
+        ratio = math.floor(width/len(text))
+        size = 300
+        wrap = 8
+
+        camp_name_words = text.split(' ')
+
+
+
+        if len(camp_name_words) < 4: 
+            wrap = 11
+            size = 250
+         
+        for word in camp_name_words: 
+            if len(word) >= 13: 
+                wrap=13
+                size= 200
+            elif len(word) >= 12: 
+                wrap=12
+                size= 200
+
+            elif len(word) >= 10:
+                wrap = 11
+                size = 250
+
+        # Hande special camp names that don't behave nicely
+        if 'observatory' in text.lower() or 'wharf' in text.lower(): 
+            wrap=12
+            size= 220
+        return {'size': size, 'break': wrap}
+
+
+    # Camp Name
+    sw = get_sign_font_size(camp)
     camp_name_size = sw["size"]
     camp_name_wrap = sw["break"]
 
     wrapped_name = '\n'.join(textwrap.wrap(camp.name, camp_name_wrap))
     add_obj_to_image(
         img,
-        create_rectangle(draw, wrapped_name, 1970, 890, bg=black, font=camp_name_size, color=white, align='center', font_name=FANCY_FONT),
-        (625, 110),
+        create_rectangle(draw, wrapped_name, SIGN_TEXT_WIDTH, SIGN_TEXT_HEIGHT, bg=black, font=camp_name_size, color=white, align='center', font_name=FANCY_FONT),
+        (625, 120),
     )
 
     
