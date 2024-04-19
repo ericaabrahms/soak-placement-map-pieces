@@ -4,10 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["Erica Abrahms <erica.abrahms@instrument.com>"]
 readme = "README.md"
-packages = [{include = "placement_map"}]
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
+pillow = "^10.3.0"
 
 
 [build-system]
