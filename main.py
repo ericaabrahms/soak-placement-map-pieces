@@ -270,6 +270,7 @@ def gen_sign_for_camp(camp: CampInfo):
         (0, 0) # start at bottom left, offset by how tall the rectangle is.
     )
 
+    # Camp Name
     def get_sign_font_size(camp): 
         text = camp.name
         height = SIGN_TEXT_HEIGHT
@@ -305,8 +306,6 @@ def gen_sign_for_camp(camp: CampInfo):
             size= 220
         return {'size': size, 'break': wrap}
 
-
-    # Camp Name
     sw = get_sign_font_size(camp)
     camp_name_size = sw["size"]
     camp_name_wrap = sw["break"]
@@ -318,7 +317,52 @@ def gen_sign_for_camp(camp: CampInfo):
         (625, 120),
     )
 
-    
+    icon_y_offset = 525
+    icon_x_offset = 525
+    icon_dimensions = 350
+
+
+    icon_top = landscape_height_in_px - icon_y_offset
+    # Icons
+    if camp.fire or camp.fire_circle: 
+        add_obj_to_image(
+            img, 
+            Image.open('./sign_assets/2-Fire-Icon.png').resize((icon_dimensions, icon_dimensions)),
+            (landscape_width_in_px - icon_x_offset, icon_top)
+        )
+        icon_x_offset += 350
+
+    if camp.xxx: 
+        add_obj_to_image(
+            img, 
+            Image.open('./sign_assets/3-Eighteen-Icon.png').resize((icon_dimensions, icon_dimensions)),
+            (landscape_width_in_px - icon_x_offset, icon_top)
+        )
+        icon_x_offset += 350
+
+    if camp.food or camp.food_plus: 
+        add_obj_to_image(
+            img, 
+            Image.open('./sign_assets/4-Food-Icon.png').resize((icon_dimensions, icon_dimensions)),
+            (landscape_width_in_px - icon_x_offset, icon_top)
+        )
+        icon_x_offset += 350
+
+    if camp.bar:
+        add_obj_to_image(
+            img, 
+            Image.open('./sign_assets/6-Drink-Icon.png').resize((icon_dimensions, icon_dimensions)),
+            (landscape_width_in_px - icon_x_offset, icon_top)
+        )
+        icon_x_offset += 350
+
+    if camp.sound_size != SoundSize.NONE:
+        add_obj_to_image(
+            img, 
+            Image.open('./sign_assets/7-Music-Icon.png').resize((icon_dimensions, icon_dimensions)),
+            (landscape_width_in_px - icon_x_offset, icon_top)
+        )
+
 
     return img
 
