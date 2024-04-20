@@ -247,6 +247,19 @@ def get_alias(camp: CampInfo):
     return name
 
 
+def get_sign_alias(camp: CampInfo):
+
+    name = camp.name
+
+    if 'conch' in name.lower():
+        name = 'Community Conch Art Support Camp'
+    elif 'disco tango foxtrot' in name.lower():
+        name = 'Disco Tango Foxtrot \n DTF'
+    elif 'glowbal' in name.lower():
+        name = 'Glowdeo Drive'
+
+    return name
+
 def gen_sign_for_camp(camp: CampInfo):
 
     # size of camp sign png
@@ -272,7 +285,8 @@ def gen_sign_for_camp(camp: CampInfo):
 
     # Camp Name
     def get_sign_font_size(camp): 
-        text = camp.name
+        text = get_sign_alias(camp)
+
         height = SIGN_TEXT_HEIGHT
         width = SIGN_TEXT_WIDTH
 
@@ -282,35 +296,48 @@ def gen_sign_for_camp(camp: CampInfo):
 
         camp_name_words = text.split(' ')
 
-
-
-        if len(camp_name_words) < 4: 
+        if len(camp_name_words) > 3: 
             wrap = 11
             size = 250
          
         for word in camp_name_words: 
-            if len(word) >= 13: 
+            if len(word) >=15: 
+                wrap = 15
+                size = 170
+            elif len(word) >= 13: 
                 wrap=13
-                size= 200
+                size= 190
             elif len(word) >= 12: 
                 wrap=12
                 size= 200
 
-            elif len(word) >= 10:
+            elif len(word) >= 9:
                 wrap = 11
                 size = 250
 
-        # Hande special camp names that don't behave nicely
-        if 'observatory' in text.lower() or 'wharf' in text.lower(): 
+        # Handle special camp names that don't behave nicely
+        t = text.lower()
+        # Mega long names
+        if 'observatory' in t or 'wharf' in t or 'conch' in t or 'bowlovfarts' in t or 'costco' in t or 'sex positivity' in t: 
             wrap=12
             size= 220
+        elif 'cbgb' in t:
+            wrap = 12
+            size = 210
+        elif 'clusterfuck' in t: 
+            size = 244
+        elif 'hypnodrome' in t or 'krampus' in t: 
+            size = 230
+
+        print({'size': size, 'break': wrap})
+
         return {'size': size, 'break': wrap}
 
     sw = get_sign_font_size(camp)
     camp_name_size = sw["size"]
     camp_name_wrap = sw["break"]
 
-    wrapped_name = '\n'.join(textwrap.wrap(camp.name, camp_name_wrap))
+    wrapped_name = '\n'.join(textwrap.wrap(get_sign_alias(camp), camp_name_wrap))
     add_obj_to_image(
         img,
         create_rectangle(draw, wrapped_name, SIGN_TEXT_WIDTH, SIGN_TEXT_HEIGHT, bg=black, font=camp_name_size, color=white, align='center', font_name=FANCY_FONT),
