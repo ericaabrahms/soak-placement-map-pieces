@@ -14,6 +14,8 @@ LARGE_FONT_SIZE = 20
 
 DEFAULT_FONT = './RobotoMono-Regular.ttf'
 FANCY_FONT = './Eilis-Regular.ttf'
+HARLEQUIN_FONT = './HarlequinFLF.ttf'
+
 # System dependent. There is a default if we don't specify any font thing.
 def get_font(size=SMALL_FONT_SIZE, font_name=None):
     font=DEFAULT_FONT
@@ -271,11 +273,6 @@ def gen_sign_for_camp(camp: CampInfo):
     img = Image.new("RGB", (landscape_width_in_px, landscape_height_in_px), white)
     draw = ImageDraw.Draw(img)
 
-    HEADER_HEIGHT = 50
-    smaller_sixth = 200
-    frontage_in_px = 100
-    depth_in_px = 100
-
     # BG Image
     add_obj_to_image(
         img,
@@ -291,44 +288,61 @@ def gen_sign_for_camp(camp: CampInfo):
         width = SIGN_TEXT_WIDTH
 
         ratio = math.floor(width/len(text))
-        size = 300
+        size = 450
         wrap = 8
 
         camp_name_words = text.split(' ')
 
         if len(camp_name_words) > 3: 
-            wrap = 11
-            size = 250
+            wrap = 12
+            size = 350
          
         for word in camp_name_words: 
             if len(word) >=15: 
                 wrap = 15
-                size = 170
-            elif len(word) >= 13: 
-                wrap=13
-                size= 190
+                size = 280
+            elif len(word) >=13:
+                wrap = 14
+                size = 290
             elif len(word) >= 12: 
-                wrap=12
-                size= 200
-
+                wrap=13
+                size= 310
+            elif len(word) == 11:
+                wrap = 12
+                size = 350
             elif len(word) >= 9:
                 wrap = 11
-                size = 250
+                size = 400
+
 
         # Handle special camp names that don't behave nicely
-        t = text.lower()
         # Mega long names
-        if 'observatory' in t or 'wharf' in t or 'conch' in t or 'bowlovfarts' in t or 'costco' in t or 'sex positivity' in t: 
-            wrap=12
-            size= 220
-        elif 'cbgb' in t:
-            wrap = 12
-            size = 210
-        elif 'clusterfuck' in t: 
-            size = 244
-        elif 'hypnodrome' in t or 'krampus' in t: 
-            size = 230
 
+        def text_contains(names): 
+            for name in names: 
+                if name in text.lower():
+                    return True
+            return False
+
+        if text_contains(['wharf', 'conch', 'bowlovfarts', 'costco', 'sex positivity', 'cbgb']): 
+            wrap = 14
+            size = 280
+        elif text_contains(['observatory']): 
+            wrap = 16
+            size = 28 
+        elif text_contains(['teenie weenie', 'monkey business', 'dtf', 'mbs', 'super happy', 'unlearning', 'snail trail', 'ranger meadow', 'temple', 'second hand booze bar']):  # 3 lines max height
+            size = 305
+        elif text_contains(['talk with strangers']):
+            size = 340            
+        elif text_contains(['black hole', 'butt hurt',  'church of cheese', 'cirque de licious', 'dr. bev', 'noods', 'smash that', 'hell bake']): 
+            size = 400
+            wrap = 11
+        elif text_contains(['clusterfuck']): 
+            size = 400
+        elif text_contains(['hypnodrome']): 
+            size = 360
+
+        print(text)
         print({'size': size, 'break': wrap})
 
         return {'size': size, 'break': wrap}
@@ -340,7 +354,7 @@ def gen_sign_for_camp(camp: CampInfo):
     wrapped_name = '\n'.join(textwrap.wrap(get_sign_alias(camp), camp_name_wrap))
     add_obj_to_image(
         img,
-        create_rectangle(draw, wrapped_name, SIGN_TEXT_WIDTH, SIGN_TEXT_HEIGHT, bg=black, font=camp_name_size, color=white, align='center', font_name=FANCY_FONT),
+        create_rectangle(draw, wrapped_name, SIGN_TEXT_WIDTH, SIGN_TEXT_HEIGHT, bg=black, font=camp_name_size, color=white, align='center', font_name=HARLEQUIN_FONT),
         (625, 120),
     )
 
@@ -367,7 +381,7 @@ def gen_sign_for_camp(camp: CampInfo):
         )
         icon_x_offset += 350
 
-    if camp.food or camp.food_plus: 
+    if camp.food != Food.NONE: 
         add_obj_to_image(
             img, 
             Image.open('./sign_assets/4-Food-Icon.png').resize((icon_dimensions, icon_dimensions)),
@@ -560,8 +574,6 @@ if __name__ == '__main__':
                 if substring_match.lower() not in camp.name.lower():
                     continue
 
-
-            print('making signs')
             img = gen_sign_for_camp(camp)
             with open(f'sign_images/{camp.name.replace(" ", "_").lower()}_sign.jpg', 'w') as f:
                 img.save(f, subsampling=0, quality=100)

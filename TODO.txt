@@ -1,5 +1,42 @@
 TODO:
 
+HARLEQUIN: 
+
+ Temple
+- Too Tall 3 lines: TWAT
+- Too tall 4 lines: 
+
+SIGNS:
+everything has food
+noplace camps
+camps with special snowflake names:
+(For three line camps - look at Mad Hatter's font size/spacing)
+ X Art Support Camp Community Conch
+ X Bowlovfarts
+ - Brother Monks
+ X Clucsterfuck
+ - Camp => Camp Camp
+ X CBGB
+ x Chaossymphony
+ x Costco
+ x DTF (remove dot)
+ - Dragon's second hand booze bar
+ X Drumamine
+ X Glowbal => Glowdeo Drive
+ X Hypnodrome
+ X Krampusberg
+ X Overfuckinrated
+ X Pancake Playhouse
+ X Practical Pleasures
+ X Smash
+ x Sex positivity (everybody gets wet)
+ X Talk with Strangers
+
+ Three line camps: 
+ - Oregon snail trail (3)
+ - Ranger Meadow
+ - temple support
+
 Make a single piece:
 x draw rectangle
 x create vertical rectangle with text
@@ -33,5 +70,5 @@ x set header, footer height based on size on plot size
 
 
 Readability:
-- improve resolution
+x improve resolution
 - scale for large camps and small camps
