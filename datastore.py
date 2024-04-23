@@ -126,6 +126,15 @@ class CampInfo(object):
     def __repr__(self):
         return f'<CampInfo: {self.name} {self.width}x{self.height}>'
 
+class ArtInfo(object): 
+    def __init__(
+        self, name: str
+        ):
+        self.name = name
+
+    def __repr__(self):
+        return f'<ArtInfo: {self.name}>'
+
 def read_csv():
     with open('./placement-temp.csv') as f:
         reader = csv.DictReader(f)
@@ -159,3 +168,14 @@ def read_csv():
                 rv_count=rv_count
             ))
     return camps
+
+
+def read_art_csv(): 
+    with open('./placement-art.csv') as f:
+        reader = csv.DictReader(f)
+        arts = []
+        for row in reader:
+            arts.append(ArtInfo(
+                name=row['Art Name'],
+            ))
+    return arts

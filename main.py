@@ -3,7 +3,7 @@ from pprint import pprint
 from typing import List, Dict
 from enum import Enum, auto
 import math
-from datastore import read_csv, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize, SoundZoneHardPreference
+from datastore import read_csv, read_art_csv, ArtInfo, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize, SoundZoneHardPreference
 import textwrap
 
 
@@ -342,9 +342,6 @@ def gen_sign_for_camp(camp: CampInfo):
         elif text_contains(['hypnodrome']): 
             size = 360
 
-        print(text)
-        print({'size': size, 'break': wrap})
-
         return {'size': size, 'break': wrap}
 
     sw = get_sign_font_size(camp)
@@ -404,6 +401,106 @@ def gen_sign_for_camp(camp: CampInfo):
             (landscape_width_in_px - icon_x_offset, icon_top)
         )
 
+
+    return img
+
+
+def gen_sign_for_art(art: ArtInfo): 
+     # size of camp sign png
+    landscape_width_in_px = 3301
+    landscape_height_in_px = 2551
+    SIGN_TEXT_HEIGHT = 880
+    SIGN_TEXT_WIDTH = 1970
+
+    img = Image.new("RGB", (landscape_width_in_px, landscape_height_in_px), white)
+    draw = ImageDraw.Draw(img)
+
+        # BG Image
+    add_obj_to_image(
+        img,
+        Image.open('./sign_assets/1-Sign-Blank.png').resize((landscape_width_in_px, landscape_height_in_px)),
+        (0, 0) # start at bottom left, offset by how tall the rectangle is.
+    )
+
+    def get_sign_font_size(art): 
+        text = art.name
+
+        height = SIGN_TEXT_HEIGHT
+        width = SIGN_TEXT_WIDTH
+
+        ratio = math.floor(width/len(text))
+        size = 450
+        wrap = 8
+
+        camp_name_words = text.split(' ')
+
+        if len(camp_name_words) > 3: 
+            wrap = 12
+            size = 350
+         
+        for word in camp_name_words: 
+            if len(word) >= 16: 
+                print(word)
+                wrap = 18
+                size = 200
+            elif len(word) >=15: 
+                wrap = 15
+                size = 280
+            elif len(word) >=13:
+                wrap = 14
+                size = 290
+            elif len(word) >= 12: 
+                wrap=13
+                size= 310
+            elif len(word) == 11:
+                wrap = 12
+                size = 350
+            elif len(word) >= 9:
+                wrap = 11
+                size = 400
+
+
+        # # Handle special camp names that don't behave nicely
+        def text_contains(names): 
+            for name in names: 
+                if name in text.lower():
+                    return True
+            return False
+        
+        if text_contains(['projection']): 
+            wrap = 15
+            size = 280
+        elif text_contains(['cosmic fire turtle']):
+            wrap = 16
+            size = 280
+        elif text_contains(['plankton']): 
+            wrap = 16
+            size = 305
+        elif text_contains(['celestial', 'cosmic portal', 'jellyfish on the bluff', 'love thy beast', 'sad lonely museum', 'bright, bob', 'principles fantastica', 'zen generator', 'wisdom willow']):  # 3 lines max height
+            size = 305
+        elif text_contains(['talk with strangers']):
+            size = 340            
+        elif text_contains(['short bus', 'soak sign shop']):  
+            size = 400
+            wrap = 11
+        elif text_contains(['clusterfuck']): 
+            size = 400
+        elif text_contains(['hypnodrome']): 
+            size = 360
+
+        print( {'size': size, 'break': wrap})
+        return {'size': size, 'break': wrap}
+
+    sw = get_sign_font_size(art)
+    art_name_size = sw["size"]
+    art_name_wrap = sw["break"]
+    
+    wrapped_name = '\n'.join(textwrap.wrap(art.name, art_name_wrap))
+    add_obj_to_image(
+        img,
+        create_rectangle(draw, wrapped_name, SIGN_TEXT_WIDTH, SIGN_TEXT_HEIGHT, bg=black, font=art_name_size, color=white, align='center', font_name=HARLEQUIN_FONT),
+        (625, 120),
+    )
 
     return img
 
@@ -564,37 +661,51 @@ def gen_image_for_camp(camp: CampInfo):
 if __name__ == '__main__':
     import sys
     camps = read_csv()
+    arts = read_art_csv()
     seen = []
 
-    for i, camp in enumerate(camps):
-        if len(sys.argv) > 1 and sys.argv[1] in 'signs': 
-
+    if len(sys.argv) > 1 and sys.argv[1] in 'art': 
+        print('art')
+        for i, art in enumerate(arts):
             if len(sys.argv) > 2:
-                substring_match = sys.argv[2]
-                if substring_match.lower() not in camp.name.lower():
+                    substring_match = sys.argv[2]
+                    if substring_match.lower() not in art.name.lower():
+                        continue
+
+            img = gen_sign_for_art(art)
+            with open(f'sign_images/art/{art.name.replace(" ", "_").lower()}_sign.jpg', 'w') as f:
+                img.save(f, subsampling=0, quality=100)
+    else:
+        print('camps')
+        for i, camp in enumerate(camps):
+            if len(sys.argv) > 1 and sys.argv[1] in 'signs': 
+
+                if len(sys.argv) > 2:
+                    substring_match = sys.argv[2]
+                    if substring_match.lower() not in camp.name.lower():
+                        continue
+
+                img = gen_sign_for_camp(camp)
+                with open(f'sign_images/{camp.name.replace(" ", "_").lower()}_sign.jpg', 'w') as f:
+                    img.save(f, subsampling=0, quality=100)
+
+
+            else:
+                if len(sys.argv) > 1:
+                    substring_match = sys.argv[1]
+                    if substring_match.lower() not in camp.name.lower():
+                        continue
+                # TODO handle tiny camps
+                if camp.height < 20 or camp.width < 20:
+                    print(f"Skipping {camp} because their frontage is too small for now.")
                     continue
 
-            img = gen_sign_for_camp(camp)
-            with open(f'sign_images/{camp.name.replace(" ", "_").lower()}_sign.jpg', 'w') as f:
-                img.save(f, subsampling=0, quality=100)
-
-
-        else:
-            if len(sys.argv) > 1:
-                substring_match = sys.argv[1]
-                if substring_match.lower() not in camp.name.lower():
-                    continue
-            # TODO handle tiny camps
-            if camp.height < 20 or camp.width < 20:
-                print(f"Skipping {camp} because their frontage is too small for now.")
-                continue
-
-            bbar = generate_border_bars_for_camp(camp)
-            count = len(bbar)
-            seen.append((count, camp, bbar))
-            # if i == 3:
-            #     sys.exit()
-            img = gen_image_for_camp(camp)
-            # img.show()
-            with open(f'images/{camp.name.replace(" ", "_").lower()}.jpg', 'w') as f:
-                img.save(f, subsampling=0, quality=100)
+                bbar = generate_border_bars_for_camp(camp)
+                count = len(bbar)
+                seen.append((count, camp, bbar))
+                # if i == 3:
+                #     sys.exit()
+                img = gen_image_for_camp(camp)
+                # img.show()
+                with open(f'images/{camp.name.replace(" ", "_").lower()}.jpg', 'w') as f:
+                    img.save(f, subsampling=0, quality=100)
