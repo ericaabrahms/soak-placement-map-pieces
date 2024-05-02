@@ -1,2 +1,4 @@
 images/*
-sign_images/*__pycache__/
+sign_images/*
+__pycache__/
+*_before/
