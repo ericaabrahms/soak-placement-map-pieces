@@ -329,7 +329,7 @@ def gen_sign_for_camp(camp: CampInfo):
             size = 280
         elif text_contains(['observatory']): 
             wrap = 16
-            size = 28 
+            size = 280 
         elif text_contains(['teenie weenie', 'monkey business', 'dtf', 'mbs', 'super happy', 'unlearning', 'snail trail', 'ranger meadow', 'temple', 'second hand booze bar']):  # 3 lines max height
             size = 305
         elif text_contains(['talk with strangers']):
