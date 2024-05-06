@@ -5,6 +5,7 @@ from enum import Enum, auto
 import math
 from datastore import read_csv, read_art_csv, ArtInfo, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize, SoundZoneHardPreference
 import textwrap
+import argparse
 
 
 # CONSTANTS
@@ -658,15 +659,8 @@ def gen_image_for_camp(camp: CampInfo):
 
     return img
 
-if __name__ == '__main__':
-    import sys
-    camps = read_csv()
-    arts = read_art_csv()
-    seen = []
-
-    if len(sys.argv) > 1 and sys.argv[1] in 'art': 
-        print('art')
-        for i, art in enumerate(arts):
+def main_art(arts):
+    for i, art in enumerate(arts):
             if len(sys.argv) > 2:
                     substring_match = sys.argv[2]
                     if substring_match.lower() not in art.name.lower():
@@ -675,37 +669,53 @@ if __name__ == '__main__':
             img = gen_sign_for_art(art)
             with open(f'sign_images/art/{art.name.replace(" ", "_").lower()}_sign.jpg', 'w') as f:
                 img.save(f, subsampling=0, quality=100)
-    else:
-        print('camps')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+                        prog='soak-placement',
+                        description='Generates map pieces and signs for soak')
+    subparsers = parser.add_subparsers(help='sub-command help', required=True, dest='subcommand')
+
+    parser_pieces = subparsers.add_parser('pieces', help='pieces help')
+
+    parser_art = subparsers.add_parser('art', help='art help')
+    parser_art.add_argument('--substring', help='Substring match. Without, it generates everything', required=False)
+
+    parser_camps = subparsers.add_parser('camps', help='camps help')
+    parser_camps.add_argument('--substring', help='Substring match. Without, it generates everything')
+
+    args = parser.parse_args()
+
+    import sys
+
+    if args.subcommand == 'art': 
+        print('art')
+        arts = read_art_csv()
+        main_art(arts)
+        sys.exit(0)
+
+    camps = read_csv()
+    if args.subcommand == 'pieces':
         for i, camp in enumerate(camps):
-            if len(sys.argv) > 1 and sys.argv[1] in 'signs': 
+            if args.substring and args.substring.lower() not in camp.name.lower():
+                continue
+            # TODO handle tiny camps
+            if camp.is_tiny():
+                print(f"Skipping {camp} because their frontage is too small for now.")
+                continue
 
-                if len(sys.argv) > 2:
-                    substring_match = sys.argv[2]
-                    if substring_match.lower() not in camp.name.lower():
-                        continue
+            img = gen_image_for_camp(camp)
+            # img.show()
+            with open(camp.to_filename('images'), 'w') as f:
+                img.save(f, subsampling=0, quality=100)
+    else: # camps
+        print('camps')
+        assert args.subcommand == 'camps'
+        for i, camp in enumerate(camps):
+            if args.substring and args.substring.lower() not in camp.name.lower():
+                continue
 
-                img = gen_sign_for_camp(camp)
-                with open(f'sign_images/{camp.name.replace(" ", "_").lower()}_sign.jpg', 'w') as f:
-                    img.save(f, subsampling=0, quality=100)
+            img = gen_sign_for_camp(camp)
+            with open(camp.to_filename('sign_images', suffix="_sign"), 'w') as f:
+                img.save(f, subsampling=0, quality=100)
 
-
-            else:
-                if len(sys.argv) > 1:
-                    substring_match = sys.argv[1]
-                    if substring_match.lower() not in camp.name.lower():
-                        continue
-                # TODO handle tiny camps
-                if camp.height < 20 or camp.width < 20:
-                    print(f"Skipping {camp} because their frontage is too small for now.")
-                    continue
-
-                bbar = generate_border_bars_for_camp(camp)
-                count = len(bbar)
-                seen.append((count, camp, bbar))
-                # if i == 3:
-                #     sys.exit()
-                img = gen_image_for_camp(camp)
-                # img.show()
-                with open(f'images/{camp.name.replace(" ", "_").lower()}.jpg', 'w') as f:
-                    img.save(f, subsampling=0, quality=100)

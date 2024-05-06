@@ -126,6 +126,12 @@ class CampInfo(object):
     def __repr__(self):
         return f'<CampInfo: {self.name} {self.width}x{self.height}>'
 
+    def to_filename(self, directory, suffix=""):
+        return f'{directory}/{self.name.replace(" ", "_").lower()}{suffix}.jpg'
+
+    def is_tiny(self):
+        return self.height < 20 or self.width < 20
+
 class ArtInfo(object): 
     def __init__(
         self, name: str
