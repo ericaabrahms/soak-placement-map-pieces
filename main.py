@@ -3,15 +3,22 @@ from pprint import pprint
 from typing import List, Dict
 from enum import Enum, auto
 import math
-from datastore import read_csv, read_art_csv, ArtInfo, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize, SoundZoneHardPreference
+from datastore import read_csv, read_art_csv, ArtInfo, CampInfo, Kids, Food, InteractivityTime, CampType, SoundZone, SoundSize, SoundZoneHardPreference, Placeable
 import textwrap
 import argparse
+from timing import timing
 
+DEBUG=True
 
 # CONSTANTS
 PIXELS_PER_FOOT = 2.4
 SMALL_FONT_SIZE = 6
 LARGE_FONT_SIZE = 20
+
+landscape_width_in_px = 3301
+landscape_height_in_px = 2551
+SIGN_TEXT_HEIGHT = 880
+SIGN_TEXT_WIDTH = 1970
 
 DEFAULT_FONT = './RobotoMono-Regular.ttf'
 FANCY_FONT = './Eilis-Regular.ttf'
@@ -57,6 +64,12 @@ interactivity_night = "#a0c4e8"
 interactivity_support = "#b6d7a8"
 
 # BASIC HELPERS
+def text_contains(text, names): 
+    for name in names: 
+        if name in text.lower():
+            return True
+    return False
+
 def get_pixels_from_feet(distance_in_feet):
   return distance_in_feet * PIXELS_PER_FOOT
 
@@ -250,116 +263,74 @@ def get_alias(camp: CampInfo):
     return name
 
 
-def get_sign_alias(camp: CampInfo):
+def get_sign_alias(thing: Placeable):
+    # TODO: Delete this. It's moved into placeable.
+    return thing.name
 
-    name = camp.name
 
-    if 'conch' in name.lower():
-        name = 'Community Conch Art Support Camp'
-    elif 'disco tango foxtrot' in name.lower():
-        name = 'Disco Tango Foxtrot \n DTF'
-    elif 'glowbal' in name.lower():
-        name = 'Glowdeo Drive'
+def get_camp_sign_font_size(camp): 
+    text = get_sign_alias(camp)
 
-    return name
+    height = SIGN_TEXT_HEIGHT
+    width = SIGN_TEXT_WIDTH
 
-def gen_sign_for_camp(camp: CampInfo):
+    ratio = math.floor(width/len(text))
+    size = 450
+    wrap = 8
 
-    # size of camp sign png
-    landscape_width_in_px = 3301
-    landscape_height_in_px = 2551
-    SIGN_TEXT_HEIGHT = 880
-    SIGN_TEXT_WIDTH = 1970
+    camp_name_words = text.split(' ')
 
-    img = Image.new("RGB", (landscape_width_in_px, landscape_height_in_px), white)
-    draw = ImageDraw.Draw(img)
-
-    # BG Image
-    add_obj_to_image(
-        img,
-        Image.open('./sign_assets/1-Sign-Blank.png').resize((landscape_width_in_px, landscape_height_in_px)),
-        (0, 0) # start at bottom left, offset by how tall the rectangle is.
-    )
-
-    # Camp Name
-    def get_sign_font_size(camp): 
-        text = get_sign_alias(camp)
-
-        height = SIGN_TEXT_HEIGHT
-        width = SIGN_TEXT_WIDTH
-
-        ratio = math.floor(width/len(text))
-        size = 450
-        wrap = 8
-
-        camp_name_words = text.split(' ')
-
-        if len(camp_name_words) > 3: 
+    if len(camp_name_words) > 3: 
+        wrap = 12
+        size = 350
+        
+    for word in camp_name_words: 
+        if len(word) >=15: 
+            wrap = 15
+            size = 280
+        elif len(word) >=13:
+            wrap = 14
+            size = 290
+        elif len(word) >= 12: 
+            wrap=13
+            size= 310
+        elif len(word) == 11:
             wrap = 12
             size = 350
-         
-        for word in camp_name_words: 
-            if len(word) >=15: 
-                wrap = 15
-                size = 280
-            elif len(word) >=13:
-                wrap = 14
-                size = 290
-            elif len(word) >= 12: 
-                wrap=13
-                size= 310
-            elif len(word) == 11:
-                wrap = 12
-                size = 350
-            elif len(word) >= 9:
-                wrap = 11
-                size = 400
-
-
-        # Handle special camp names that don't behave nicely
-        # Mega long names
-
-        def text_contains(names): 
-            for name in names: 
-                if name in text.lower():
-                    return True
-            return False
-
-        if text_contains(['wharf', 'conch', 'bowlovfarts', 'costco', 'sex positivity', 'cbgb']): 
-            wrap = 14
-            size = 280
-        elif text_contains(['observatory']): 
-            wrap = 16
-            size = 280 
-        elif text_contains(['teenie weenie', 'monkey business', 'dtf', 'mbs', 'super happy', 'unlearning', 'snail trail', 'ranger meadow', 'temple', 'second hand booze bar']):  # 3 lines max height
-            size = 305
-        elif text_contains(['talk with strangers']):
-            size = 340            
-        elif text_contains(['black hole', 'butt hurt',  'church of cheese', 'cirque de licious', 'dr. bev', 'noods', 'smash that', 'hell bake']): 
-            size = 400
+        elif len(word) >= 9:
             wrap = 11
-        elif text_contains(['clusterfuck']): 
             size = 400
-        elif text_contains(['hypnodrome']): 
-            size = 360
 
-        return {'size': size, 'break': wrap}
 
-    sw = get_sign_font_size(camp)
-    camp_name_size = sw["size"]
-    camp_name_wrap = sw["break"]
+    # Handle special camp names that don't behave nicely
+    # Mega long names
 
-    wrapped_name = '\n'.join(textwrap.wrap(get_sign_alias(camp), camp_name_wrap))
-    add_obj_to_image(
-        img,
-        create_rectangle(draw, wrapped_name, SIGN_TEXT_WIDTH, SIGN_TEXT_HEIGHT, bg=black, font=camp_name_size, color=white, align='center', font_name=HARLEQUIN_FONT),
-        (625, 120),
-    )
+    if text_contains(text, ['wharf', 'conch', 'bowlovfarts', 'costco', 'sex positivity', 'cbgb']): 
+        wrap = 14
+        size = 280
+    elif text_contains(text, ['observatory']): 
+        wrap = 16
+        size = 280 
+    elif text_contains(text, ['teenie weenie', 'monkey business', 'dtf', 'mbs', 'super happy', 'unlearning', 'snail trail', 'ranger meadow', 'temple', 'second hand booze bar']):  # 3 lines max height
+        size = 305
+    elif text_contains(text, ['talk with strangers']):
+        size = 340            
+    elif text_contains(text, ['black hole', 'butt hurt',  'church of cheese', 'cirque de licious', 'dr. bev', 'noods', 'smash that', 'hell bake']): 
+        size = 400
+        wrap = 11
+    elif text_contains(text, ['clusterfuck']): 
+        size = 400
+    elif text_contains(text, ['hypnodrome']): 
+        size = 360
+
+    return {'size': size, 'break': wrap}
+
+def gen_sign_for_camp(camp: CampInfo):
+    img = gen_sign_generic(camp, get_camp_sign_font_size)
 
     icon_y_offset = 525
     icon_x_offset = 525
     icon_dimensions = 350
-
 
     icon_top = landscape_height_in_px - icon_y_offset
     # Icons
@@ -406,7 +377,91 @@ def gen_sign_for_camp(camp: CampInfo):
     return img
 
 
-def gen_sign_for_art(art: ArtInfo): 
+def gen_sign_for_art(art: ArtInfo):
+    img = gen_sign_generic(art, get_art_sign_font_size)
+
+    if art.number: 
+        icon_y_offset = 525
+        icon_x_offset = 525
+        icon_dimensions = 350
+        icon_top = landscape_height_in_px - icon_y_offset
+        draw = ImageDraw.Draw(img)
+
+        add_obj_to_image(
+            img,
+            create_rectangle(draw, art.number, 600, icon_dimensions, bg=black, font=350, color=white, align='right', font_name=HARLEQUIN_FONT),
+            (landscape_width_in_px - 750, icon_top),
+        )
+
+    
+    return img
+
+def get_art_sign_font_size(art): 
+    text = art.name
+
+    height = SIGN_TEXT_HEIGHT
+    width = SIGN_TEXT_WIDTH
+
+    ratio = math.floor(width/len(text))
+    size = 450
+    wrap = 8
+
+    camp_name_words = text.split(' ')
+
+    if len(camp_name_words) > 3: 
+        wrap = 12
+        size = 350
+        
+    for word in camp_name_words: 
+        if len(word) >= 16: 
+            print(word)
+            wrap = 18
+            size = 200
+        elif len(word) >=15: 
+            wrap = 15
+            size = 280
+        elif len(word) >=13:
+            wrap = 14
+            size = 290
+        elif len(word) >= 12: 
+            wrap=13
+            size= 310
+        elif len(word) == 11:
+            wrap = 12
+            size = 350
+        elif len(word) >= 9:
+            wrap = 11
+            size = 400
+
+
+    # # Handle special camp names that don't behave nicely
+
+    if text_contains(text, ['projection']): 
+        wrap = 15
+        size = 280
+    elif text_contains(text, ['cosmic fire turtle', 'swim the smack']):
+        wrap = 16
+        size = 280
+    elif text_contains(text, ['plankton']): 
+        wrap = 16
+        size = 305
+    elif text_contains(text, ['celestial', 'cosmic portal', 'jellyfish on the bluff', 'love thy beast', 'sad lonely museum', 'bright, bob', 'principles fantastica', 'zen generator', 'wisdom willow']):  # 3 lines max height
+        size = 305
+    elif text_contains(text, ['talk with strangers', 'school of dreams', 'slow camera']):
+        size = 340            
+    elif text_contains(text, ['short bus', 'soak sign shop']):  
+        size = 400
+        wrap = 11
+    elif text_contains(text, ['clusterfuck']): 
+        size = 400
+    elif text_contains(text, ['hypnodrome']): 
+        size = 360
+
+    print( {'size': size, 'break': wrap})
+    return {'size': size, 'break': wrap}
+
+
+def gen_sign_generic(thing: Placeable, sizer): 
      # size of camp sign png
     landscape_width_in_px = 3301
     landscape_height_in_px = 2551
@@ -423,80 +478,13 @@ def gen_sign_for_art(art: ArtInfo):
         (0, 0) # start at bottom left, offset by how tall the rectangle is.
     )
 
-    def get_sign_font_size(art): 
-        text = art.name
+    
 
-        height = SIGN_TEXT_HEIGHT
-        width = SIGN_TEXT_WIDTH
-
-        ratio = math.floor(width/len(text))
-        size = 450
-        wrap = 8
-
-        camp_name_words = text.split(' ')
-
-        if len(camp_name_words) > 3: 
-            wrap = 12
-            size = 350
-         
-        for word in camp_name_words: 
-            if len(word) >= 16: 
-                print(word)
-                wrap = 18
-                size = 200
-            elif len(word) >=15: 
-                wrap = 15
-                size = 280
-            elif len(word) >=13:
-                wrap = 14
-                size = 290
-            elif len(word) >= 12: 
-                wrap=13
-                size= 310
-            elif len(word) == 11:
-                wrap = 12
-                size = 350
-            elif len(word) >= 9:
-                wrap = 11
-                size = 400
-
-
-        # # Handle special camp names that don't behave nicely
-        def text_contains(names): 
-            for name in names: 
-                if name in text.lower():
-                    return True
-            return False
-        
-        if text_contains(['projection']): 
-            wrap = 15
-            size = 280
-        elif text_contains(['cosmic fire turtle']):
-            wrap = 16
-            size = 280
-        elif text_contains(['plankton']): 
-            wrap = 16
-            size = 305
-        elif text_contains(['celestial', 'cosmic portal', 'jellyfish on the bluff', 'love thy beast', 'sad lonely museum', 'bright, bob', 'principles fantastica', 'zen generator', 'wisdom willow']):  # 3 lines max height
-            size = 305
-        elif text_contains(['talk with strangers']):
-            size = 340            
-        elif text_contains(['short bus', 'soak sign shop']):  
-            size = 400
-            wrap = 11
-        elif text_contains(['clusterfuck']): 
-            size = 400
-        elif text_contains(['hypnodrome']): 
-            size = 360
-
-        print( {'size': size, 'break': wrap})
-        return {'size': size, 'break': wrap}
-
-    sw = get_sign_font_size(art)
+    sw = sizer(thing)
     art_name_size = sw["size"]
     art_name_wrap = sw["break"]
     
-    wrapped_name = '\n'.join(textwrap.wrap(art.name, art_name_wrap))
+    wrapped_name = '\n'.join(textwrap.wrap(thing.get_name(), art_name_wrap))
     add_obj_to_image(
         img,
         create_rectangle(draw, wrapped_name, SIGN_TEXT_WIDTH, SIGN_TEXT_HEIGHT, bg=black, font=art_name_size, color=white, align='center', font_name=HARLEQUIN_FONT),
@@ -504,6 +492,7 @@ def gen_sign_for_art(art: ArtInfo):
     )
 
     return img
+
 
 # MAKE THE IMAGE FOR CAMPS
 def gen_image_for_camp(camp: CampInfo):
@@ -659,16 +648,16 @@ def gen_image_for_camp(camp: CampInfo):
 
     return img
 
-def main_art(arts):
+def main_art(arts, substring_match):
     for i, art in enumerate(arts):
-            if len(sys.argv) > 2:
-                    substring_match = sys.argv[2]
-                    if substring_match.lower() not in art.name.lower():
-                        continue
+            if substring_match and substring_match.lower() not in art.name.lower():
+                continue
+            with timing('gen sign for %s' % art.name, debug=True):
+                img = gen_sign_for_art(art)
 
-            img = gen_sign_for_art(art)
-            with open(f'sign_images/art/{art.name.replace(" ", "_").lower()}_sign.jpg', 'w') as f:
-                img.save(f, subsampling=0, quality=100)
+            with open(art.to_filename('sign_images/art', suffix="_sign"), 'w') as f:
+                with timing('saving image', debug=DEBUG):
+                    img.save(f, subsampling=0, quality=100)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -677,9 +666,11 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(help='sub-command help', required=True, dest='subcommand')
 
     parser_pieces = subparsers.add_parser('pieces', help='pieces help')
+    parser_pieces.add_argument('--substring', help='Substring match. Without, it generates everything')
+
 
     parser_art = subparsers.add_parser('art', help='art help')
-    parser_art.add_argument('--substring', help='Substring match. Without, it generates everything', required=False)
+    parser_art.add_argument('--substring', help='Substring match. Without, it generates everything')
 
     parser_camps = subparsers.add_parser('camps', help='camps help')
     parser_camps.add_argument('--substring', help='Substring match. Without, it generates everything')
@@ -690,8 +681,10 @@ if __name__ == '__main__':
 
     if args.subcommand == 'art': 
         print('art')
-        arts = read_art_csv()
-        main_art(arts)
+        with timing("reading csv", debug=DEBUG):
+            arts = read_art_csv()
+        with timing("doing all images", debug=DEBUG):
+            main_art(arts, args.substring)
         sys.exit(0)
 
     camps = read_csv()

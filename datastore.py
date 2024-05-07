@@ -92,8 +92,22 @@ class SoundZoneHardPreference(Enum):
     NO = 'We will make it work!'
     NONE = 'N/A'
 
+class Placeable(object):
+    def get_name(self):
+        if not hasattr(self, 'name'):
+            raise NotImplemented("Fill this out")
+        if 'conch' in self.name.lower():
+            return 'Community Conch Art Support Camp'
+        elif 'disco tango foxtrot' in self.name.lower():
+            return 'Disco Tango Foxtrot \n DTF'
+        elif 'glowbal' in self.name.lower():
+            return 'Glowdeo Drive'
+        return self.name
+    
+    def to_filename(self, directory, suffix=""):
+        return f'{directory}/{self.name.replace(" ", "_").replace('/', '').lower()}{suffix}.jpg'
 
-class CampInfo(object):
+class CampInfo(Placeable):
     def __init__(
             self, width: int, height: int, name: str, camp_type: CampType,
             sound_zone: SoundZone, interactivity_time: InteractivityTime,
@@ -126,20 +140,24 @@ class CampInfo(object):
     def __repr__(self):
         return f'<CampInfo: {self.name} {self.width}x{self.height}>'
 
-    def to_filename(self, directory, suffix=""):
-        return f'{directory}/{self.name.replace(" ", "_").lower()}{suffix}.jpg'
-
     def is_tiny(self):
         return self.height < 20 or self.width < 20
 
-class ArtInfo(object): 
+class ArtInfo(Placeable): 
     def __init__(
-        self, name: str
+        self, name: str, number: str
         ):
         self.name = name
+        self.number = number
 
     def __repr__(self):
         return f'<ArtInfo: {self.name}>'
+
+    def get_name(self):
+        if "conch" in self.name.lower():
+            # @@@
+            return "Community Conch"
+        return self.name
 
 def read_csv():
     with open('./placement-temp.csv') as f:
@@ -183,5 +201,6 @@ def read_art_csv():
         for row in reader:
             arts.append(ArtInfo(
                 name=row['Art Name'],
+                number=row['Number']
             ))
     return arts
